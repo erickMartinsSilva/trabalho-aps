@@ -1,111 +1,182 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+@custom-variant dark (&:is(.dark *));
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@theme inline {
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  --color-background:             var(--background);
+  --color-foreground:             var(--foreground);
+  --color-card:                   var(--card);
+  --color-card-foreground:        var(--card-foreground);
+  --color-popover:                var(--popover);
+  --color-popover-foreground:     var(--popover-foreground);
+  --color-primary:                var(--primary);
+  --color-primary-foreground:     var(--primary-foreground);
+  --color-secondary:              var(--secondary);
+  --color-secondary-foreground:   var(--secondary-foreground);
+  --color-muted:                  var(--muted);
+  --color-muted-foreground:       var(--muted-foreground);
+  --color-accent:                 var(--accent);
+  --color-accent-foreground:      var(--accent-foreground);
+  --color-destructive:            var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border:                 var(--border);
+  --color-input:                  var(--input);
+  --color-ring:                   var(--ring);
+
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-pill: 999px;
+
+  --spacing-1:  4px;
+  --spacing-2:  8px;
+  --spacing-3:  12px;
+  --spacing-4:  16px;
+  --spacing-5:  20px;
+  --spacing-6:  24px;
+  --spacing-8:  32px;
+  --spacing-10: 40px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+:root {
+  --radius: 0.5rem;
+
+  --background:           oklch(0.972 0.006 75);
+  --foreground:           oklch(0.194 0.005 75);
+  --card:                 oklch(0.928 0.010 75);
+  --card-foreground:      oklch(0.194 0.005 75);
+  --popover:              oklch(0.972 0.006 75);
+  --popover-foreground:   oklch(0.194 0.005 75);
+  --primary:              oklch(0.408 0.100 243);
+  --primary-foreground:   oklch(1 0 0);
+  --secondary:            oklch(0.928 0.010 75);
+  --secondary-foreground: oklch(0.194 0.005 75);
+  --muted:                oklch(0.928 0.010 75);
+  --muted-foreground:     oklch(0.412 0.006 75);
+  --accent:               oklch(0.956 0.025 243);
+  --accent-foreground:    oklch(0.260 0.075 243);
+  --destructive:          oklch(0.432 0.130 22);
+  --destructive-foreground: oklch(1 0 0);
+  --border:               oklch(0.719 0.008 75);
+  --input:                oklch(0.719 0.008 75);
+  --ring:                 oklch(0.408 0.100 243);
+
+  --color-success:        oklch(0.599 0.130 168);
+  --color-success-light:  oklch(0.947 0.045 168);
+  --color-success-dark:   oklch(0.308 0.090 168);
+  --color-warning:        oklch(0.575 0.135 68);
+  --color-warning-light:  oklch(0.953 0.050 80);
+  --color-warning-dark:   oklch(0.347 0.110 52);
+  --color-reserved:       oklch(0.956 0.025 243);
+  --color-reserved-dark:  oklch(0.260 0.075 243);
+
+  --sidebar:              oklch(0.972 0.006 75);
+  --sidebar-foreground:   oklch(0.194 0.005 75);
+  --sidebar-primary:      oklch(0.408 0.100 243);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent:       oklch(0.956 0.025 243);
+  --sidebar-accent-foreground: oklch(0.260 0.075 243);
+  --sidebar-border:       oklch(0.719 0.008 75);
+  --sidebar-ring:         oklch(0.408 0.100 243);
+}
+
+.dark {
+  --background:           oklch(0.138 0.015 260);
+  --foreground:           oklch(0.910 0.008 80);
+  --card:                 oklch(0.178 0.015 260);
+  --card-foreground:      oklch(0.910 0.008 80);
+  --popover:              oklch(0.178 0.015 260);
+  --popover-foreground:   oklch(0.910 0.008 80);
+  --primary:              oklch(0.600 0.120 243);
+  --primary-foreground:   oklch(1 0 0);
+  --secondary:            oklch(0.215 0.018 260);
+  --secondary-foreground: oklch(0.910 0.008 80);
+  --muted:                oklch(0.215 0.018 260);
+  --muted-foreground:     oklch(0.620 0.010 80);
+  --accent:               oklch(0.248 0.060 243);
+  --accent-foreground:    oklch(0.810 0.060 243);
+  --destructive:          oklch(0.570 0.165 22);
+  --destructive-foreground: oklch(1 0 0);
+  --border:               oklch(1 0 0 / 12%);
+  --input:                oklch(1 0 0 / 16%);
+  --ring:                 oklch(0.600 0.120 243);
+
+  --color-success:        oklch(0.680 0.130 168);
+  --color-success-light:  oklch(0.248 0.065 168);
+  --color-success-dark:   oklch(0.820 0.080 168);
+  --color-warning:        oklch(0.670 0.140 68);
+  --color-warning-light:  oklch(0.260 0.065 68);
+  --color-warning-dark:   oklch(0.840 0.085 80);
+  --color-reserved:       oklch(0.248 0.060 243);
+  --color-reserved-dark:  oklch(0.810 0.060 243);
+
+  --sidebar:              oklch(0.178 0.015 260);
+  --sidebar-foreground:   oklch(0.910 0.008 80);
+  --sidebar-primary:      oklch(0.600 0.120 243);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent:       oklch(0.248 0.060 243);
+  --sidebar-accent-foreground: oklch(0.810 0.060 243);
+  --sidebar-border:       oklch(1 0 0 / 12%);
+  --sidebar-ring:         oklch(0.600 0.120 243);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
+  html {
+    @apply font-sans;
+    height: 100%;
+    background-color: #0d1117;
+    background-image:
+      radial-gradient(ellipse 80% 40% at 50% 0%, oklch(0.30 0.06 243 / 55%) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 30% at 50% 100%, oklch(0.20 0.04 260 / 35%) 0%, transparent 70%);
   }
+
+  body {
+    @apply bg-background text-foreground;
+    width: 100%;
+    max-width: 430px;
+    min-height: 100svh;
+    margin: 0 auto;
+    font-size: 15px;
+    line-height: 1.6;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  @media (min-width: 431px) {
+    body {
+      box-shadow:
+        0 0 0 1px oklch(0.40 0.06 243 / 30%),
+        0 0 0 1.5px oklch(0.25 0.04 243 / 20%),
+        0 16px 64px oklch(0 0 0 / 60%),
+        0 4px 16px  oklch(0 0 0 / 40%);
+    }
+  }
+
+  h1 { font-size: 32px; font-weight: 500; }
+  h2 { font-size: 22px; font-weight: 500; }
+  h3 { font-size: 17px; font-weight: 500; }
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
 }
