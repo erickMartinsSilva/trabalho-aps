@@ -16,8 +16,7 @@ export default function LoginPage() {
     cpf: undefined,
     password: undefined
   })
-  const [errors, setErrors] = useState<{general?: String, cpf?: string, password?: string}>({
-    general: undefined,
+  const [errors, setErrors] = useState<{cpf?: string, password?: string}>({
     cpf: undefined,
     password: undefined
   })
@@ -54,8 +53,6 @@ export default function LoginPage() {
       <Card className="px-4 w-full shadow-2xl">
         <h2 className="text-center">Login</h2>
 
-        {errors.general && <p className="text-xs font-semibold text-red-500">{errors.general}</p>}
-
         <div className="flex flex-col gap-2">
           <Label htmlFor="cpf">CPF (apenas números)</Label>
           <Input
@@ -65,9 +62,9 @@ export default function LoginPage() {
             pattern="[0-9]*"
             maxLength={11}
             placeholder="Insira seu CPF"
-            className={errors.cpf || !formData.cpf ? "border-red-500 text-red-500" : undefined}
+            className={errors.cpf ? "border-red-500 text-red-500" : undefined}
             onInput={(e) => {
-              setErrors({...errors, general: undefined, cpf: undefined})
+              setErrors({...errors, cpf: undefined})
               e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '')
             }}
             onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
@@ -81,9 +78,9 @@ export default function LoginPage() {
             id="password"
             type="password"
             placeholder="Insira sua senha"
-            className={errors.password || !formData.password ? "border-red-500 text-red-500" : undefined}
+            className={errors.password ? "border-red-500 text-red-500" : undefined}
             onInput={() =>
-              setErrors({...errors, general: undefined, password: undefined})
+              setErrors({...errors, password: undefined})
             }
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
           />
