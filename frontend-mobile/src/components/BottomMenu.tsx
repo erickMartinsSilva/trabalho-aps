@@ -1,28 +1,31 @@
+import { useNavigate, useLocation } from 'react-router'
 import { IconHome, IconBuilding, IconCalendar, IconUser } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 
-export type NavTab = 'home' | 'spaces' | 'bookings' | 'profile'
-
-interface NavItem {
-  id: NavTab
+type NavItem = {
+  path: string
   label: string
   Icon: React.ElementType
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'home',     label: 'Início',   Icon: IconHome },
-  { id: 'spaces',   label: 'Espaços',  Icon: IconBuilding },
-  { id: 'bookings', label: 'Reservas', Icon: IconCalendar },
-  { id: 'profile',  label: 'Perfil',   Icon: IconUser },
+  { path: '/',         label: 'Início',   Icon: IconHome },
+  { path: '/spaces',   label: 'Espaços',  Icon: IconBuilding },
+  { path: '/bookings', label: 'Reservas', Icon: IconCalendar },
+  { path: '/profile',  label: 'Perfil',   Icon: IconUser },
 ]
 
-interface BottomNavProps {
-  activeTab: NavTab
-  onTabChange: (tab: NavTab) => void
+interface BottomMenuProps {
   className?: string
 }
 
-export function BottomNav({ activeTab, onTabChange, className }: BottomNavProps) {
+export function BottomMenu({ className }: BottomMenuProps) {
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+
+  const currentPageIsLogin = pathname === "/login"
+  if(currentPageIsLogin) return null
+  
   return (
     <nav
       aria-label="Navegação principal"
@@ -34,17 +37,17 @@ export function BottomNav({ activeTab, onTabChange, className }: BottomNavProps)
       )}
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      {NAV_ITEMS.map(({ id, label, Icon }) => {
-        const isActive = activeTab === id
+      {NAV_ITEMS.map(({ path, label, Icon }) => {
+        const isActive = pathname === path
         return (
           <button
-            key={id}
-            id={`nav-tab-${id}`}
+            key={path}
+            id={`nav-tab-${path.replace('/', '') || 'home'}`}
             type="button"
             role="tab"
             aria-selected={isActive}
             aria-label={label}
-            onClick={() => onTabChange(id)}
+            onClick={() => navigate(path)}
             className={cn(
               'flex flex-1 flex-col items-center justify-center gap-0.5 min-h-[48px]',
               'text-[11px] font-medium uppercase tracking-[0.07em]',
