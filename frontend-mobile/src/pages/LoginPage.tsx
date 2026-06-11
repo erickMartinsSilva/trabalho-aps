@@ -31,8 +31,7 @@ export default function LoginPage() {
 
     const { cpf, password } = formData
     if(!cpf || !password) {
-      newErrors.general = "Um ou mais campos obrigatórios estão vazios"
-      return setErrors(newErrors)
+      return
     }
     if(!cpfValido(cpf)) {
       newErrors.cpf = "CPF inválido"
