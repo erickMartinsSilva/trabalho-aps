@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://www.aps.com/api/usuario"
+           targetNamespace="http://www.aps.com/api/usuario"
+           elementFormDefault="qualified">
+
+    <xs:complexType name="UsuarioInfo">
+        <xs:sequence>
+            <xs:element name="id"  type="xs:int"/>
+            <xs:element name="cpf" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="loginRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="cpf"   type="xs:string"/>
+                <xs:element name="senha" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="loginResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="sucesso"  type="xs:boolean"/>
+                <xs:element name="mensagem" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="cadastrarUsuarioRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="cpf"   type="xs:string"/>
+                <xs:element name="senha" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="cadastrarUsuarioResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="sucesso"  type="xs:boolean"/>
+                <xs:element name="mensagem" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="atualizarUsuarioRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id"    type="xs:int"/>
+                <xs:element name="cpf"   type="xs:string" minOccurs="0"/>
+                <xs:element name="senha" type="xs:string" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="atualizarUsuarioResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="sucesso"  type="xs:boolean"/>
+                <xs:element name="mensagem" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="alterarSenhaRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id"          type="xs:int"/>
+                <xs:element name="senhaAtual"  type="xs:string"/>
+                <xs:element name="senhaNova"   type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="alterarSenhaResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="sucesso"  type="xs:boolean"/>
+                <xs:element name="mensagem" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="deletarUsuarioRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id" type="xs:int"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="deletarUsuarioResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="sucesso"  type="xs:boolean"/>
+                <xs:element name="mensagem" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="buscarUsuarioRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id" type="xs:int"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="buscarUsuarioResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id"  type="xs:int"/>
+                <xs:element name="cpf" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="listarUsuariosRequest">
+        <xs:complexType>
+            <xs:sequence/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="listarUsuariosResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="usuarios" type="tns:UsuarioInfo"
+                            minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>
