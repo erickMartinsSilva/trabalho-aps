@@ -7,15 +7,8 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { StatusBadge } from '@/components/StatusBadge'
-import type { BadgeStatus } from '@/components/StatusBadge'
+import type { ReservaStatusValue } from '@/models'
 import { cn } from '@/lib/utils'
-
-const reservaStatusMap: Record<string, BadgeStatus> = {
-  CONFIRMADA: 'reserved',
-  CONCLUIDA:  'available',
-  CANCELADA:  'occupied',
-  PENDENTE:   'pending',
-}
 
 export interface BookingCardProps {
   id: number
@@ -23,7 +16,7 @@ export interface BookingCardProps {
   dataHoraTermino: Date
   espacoNome?: string
   espacoId: number
-  status: string
+  status: ReservaStatusValue
   onClick?: () => void
   className?: string
 }
@@ -46,11 +39,9 @@ export function BookingCard({
   onClick,
   className,
 }: BookingCardProps) {
-  const badgeStatus: BadgeStatus = reservaStatusMap[status] ?? 'pending'
-
   const StatusIcon =
-    status === 'CANCELADA' ? IconCalendarX
-    : status === 'CONCLUIDA' ? IconCalendarCheck
+    status === 'Cancelada' ? IconCalendarX
+    : status === 'Concluída' ? IconCalendarCheck
     : IconCalendar
 
   return (
@@ -79,7 +70,7 @@ export function BookingCard({
               {espacoNome ?? `Espaço #${espacoId}`}
             </CardTitle>
           </div>
-          <StatusBadge status={badgeStatus} className="shrink-0" />
+          <StatusBadge status={status} className="shrink-0" />
         </div>
       </CardHeader>
 
