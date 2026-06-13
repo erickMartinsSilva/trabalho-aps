@@ -1,9 +1,9 @@
 package com.aps.api.state.reserva;
 
-import com.aps.api.model.Reserva;
+import com.aps.api.model.ReservaModel;
 
 public interface ReservaState {
-    void cancelar(Reserva reserva);
-    void verificarConclusao(Reserva reserva);
+    void cancelar(ReservaModel reserva);
+    void verificarConclusao(ReservaModel reserva);
     String getNome();
 }

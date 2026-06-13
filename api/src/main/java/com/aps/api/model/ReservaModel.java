@@ -11,6 +11,10 @@ public class ReservaModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "status_reserva_enum", nullable = false)
+    private StatusReserva status;
+
     @Column(name = "data_hora_inicio")
     private OffsetDateTime dataHoraInicio;
 
@@ -29,6 +33,9 @@ public class ReservaModel {
     public void setId(Integer id) { 
         this.id = id; 
     }
+
+    public StatusReserva getStatus() {return status;}
+    public void setStatus(StatusReserva status) {this.status = status;}
 
     public OffsetDateTime getDataHoraInicio() { 
         return dataHoraInicio; 

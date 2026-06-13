@@ -1,24 +1,25 @@
 package com.aps.api.state.reserva;
 
-import com.aps.api.model.Reserva;
-import java.time.LocalDateTime;
+import com.aps.api.model.ReservaModel;
+import com.aps.api.model.StatusReserva;
+import java.time.OffsetDateTime;
 
 public class ReservaCriadaState implements ReservaState {
     @Override
-    public void cancelar(Reserva reserva){
-        reserva.setState(new ReservaCanceladaState());
+    public void cancelar(ReservaModel reserva){
+        reserva.setStatus(StatusReserva.CANCELADA);
     }
 
     @Override
-    public void verificarConclusao(Reserva reserva){
-        LocalDateTime agora = LocalDateTime.now();
-        if (reserva.getDataFim() != null && agora.isAfter(reserva.getDataFim())) {
-            reserva.setState(new ReservaConcluidaState());
+    public void verificarConclusao(ReservaModel reserva){
+        OffsetDateTime agora = OffsetDateTime.now();
+        if (reserva.getDataHoraTermino() != null && agora.isAfter(reserva.getDataHoraInicio())) {
+            reserva.setStatus(StatusReserva.CONCLUIDA);
         }
     }
 
     @Override
     public String getNome(){
-        return "CRIADA";
+        return StatusReserva.CRIADA.name();
     }
 }

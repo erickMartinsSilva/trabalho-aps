@@ -1,33 +1,34 @@
 package com.aps.api.state.espaco;
 
-import com.aps.api.model.Espaco;
+import com.aps.api.model.EspacoModel;
+import com.aps.api.model.StatusEspaco;
 
 public class EspacoReservadoState implements EspacoState {
     @Override
-    public void reservarEspaco(Espaco espaco) {
+    public void reservarEspaco(EspacoModel espaco) {
         throw new IllegalStateException(
-                "Não é possível reservar: espaço já está RESERVADO.");
+                "Não é possível reservar: espaço já está OCUPADO.");
     }
 
     @Override
-    public void liberarEspaco(Espaco espaco) {
-        espaco.setState(new EspacoDisponivelState());
+    public void liberarEspaco(EspacoModel espaco) {
+        espaco.setStatus(StatusEspaco.DISPONIVEL);
     }
 
     @Override
-    public void iniciarManutencao(Espaco espaco) {
+    public void iniciarManutencao(EspacoModel espaco) {
         throw new IllegalStateException(
-                "Não é possível iniciar manutenção: espaço está RESERVADO.");
+                "Não é possível iniciar manutenção: espaço está OCUPADO.");
     }
 
     @Override
-    public void finalizarManutencao(Espaco espaco) {
+    public void finalizarManutencao(EspacoModel espaco) {
         throw new IllegalStateException(
                 "Não é possível finalizar manutenção: espaço não está em manutenção.");
     }
 
     @Override
     public String getNome() {
-        return "RESERVADO";
+        return StatusEspaco.OCUPADO.name();
     }
 }
