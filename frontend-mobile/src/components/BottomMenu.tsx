@@ -2,14 +2,14 @@ import { useNavigate, useLocation } from 'react-router'
 import { IconHome, IconBuilding, IconCalendar, IconUser } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 
-type NavItem = {
+export type NavItem = {
   path: string
   label: string
   Icon: React.ElementType
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { path: '/',         label: 'Início',   Icon: IconHome },
+  { path: '/home',     label: 'Início',   Icon: IconHome },
   { path: '/spaces',   label: 'Espaços',  Icon: IconBuilding },
   { path: '/bookings', label: 'Reservas', Icon: IconCalendar },
   { path: '/profile',  label: 'Perfil',   Icon: IconUser },
@@ -23,7 +23,7 @@ export function BottomMenu({ className }: BottomMenuProps) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
 
-  const currentPageIsLogin = pathname === "/login"
+  const currentPageIsLogin = pathname === "/"
   if(currentPageIsLogin) return null
   
   return (

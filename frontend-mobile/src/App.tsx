@@ -18,7 +18,7 @@ function AppShell() {
   }
 
   return (
-    <div className="flex flex-col min-h-svh bg-background">
+    <div className="flex flex-col h-svh overflow-hidden bg-background">
       <button
         id="btn-dark-toggle"
         type="button"
@@ -45,17 +45,17 @@ function AppShell() {
         {dark ? <IconSun size={22} /> : <IconMoon size={22} />}
       </button>
 
-      <main id="main-content" className="flex-1 overflow-y-auto">
+      <main id="main-content" className="h-full flex flex-col">
         <Routes>
-          <Route path="/"         element={<HomePage />} />
+          <Route path="/"         element={<LoginPage />} />
+          <Route path="/home"    element={<HomePage/>}/>
           <Route path="/spaces"   element={<SpacesPage />} />
           <Route path="/bookings" element={<BookingsPage />} />
           <Route path="/profile"  element={<ProfilePage />} />
-          <Route path="/login"    element={<LoginPage/>}/>
         </Routes>
+        <BottomMenu/>
       </main>
 
-      <BottomMenu/>
     </div>
   )
 }
