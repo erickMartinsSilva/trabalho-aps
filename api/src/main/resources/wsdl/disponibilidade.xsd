@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://www.aps.com/api/disponibilidade"
+           targetNamespace="http://www.aps.com/api/disponibilidade"
+           elementFormDefault="qualified">
+
+    <xs:complexType name="DisponibilidadeInfo">
+        <xs:sequence>
+            <xs:element name="espacoId"        type="xs:int"/>
+            <xs:element name="nomeEspaco"      type="xs:string"/>
+            <xs:element name="dataHoraInicio"  type="xs:string"/>
+            <xs:element name="dataHoraTermino" type="xs:string"/>
+            <xs:element name="disponivel"      type="xs:boolean"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="consultarDisponibilidadeRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="espacoId"        type="xs:int"/>
+                <xs:element name="dataHoraInicio"  type="xs:string"/>
+                <xs:element name="dataHoraTermino" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="consultarDisponibilidadeResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="disponibilidades" type="tns:DisponibilidadeInfo"
+                            minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>
