@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS reserva(
         REFERENCES usuario(id),
     CONSTRAINT fk_espaco
         FOREIGN KEY (espaco_id)
-        REFERENCES usuario(id)
+        REFERENCES espaco(id)
 
 
 )

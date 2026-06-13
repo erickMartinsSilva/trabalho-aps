@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://www.aps.com/api/reserva"
+           targetNamespace="http://www.aps.com/api/reserva"
+           elementFormDefault="qualified">
+
+    <xs:complexType name="ReservaInfo">
+        <xs:sequence>
+            <xs:element name="id"              type="xs:int"/>
+            <xs:element name="espacoId"        type="xs:int"/>
+            <xs:element name="nomeEspaco"      type="xs:string"/>
+            <xs:element name="usuarioId"       type="xs:int"/>
+            <xs:element name="cpfUsuario"      type="xs:string"/>
+            <xs:element name="dataHoraInicio"  type="xs:string"/> 
+            <xs:element name="dataHoraTermino" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="reservarEspacoRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="usuarioId"       type="xs:int"/>
+                <xs:element name="espacoId"        type="xs:int"/>
+                <xs:element name="dataHoraInicio"  type="xs:string"/>
+                <xs:element name="dataHoraTermino" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="reservarEspacoResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="sucesso"  type="xs:boolean"/>
+                <xs:element name="mensagem" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="atualizarReservaRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id"              type="xs:int"/>
+                <xs:element name="dataHoraInicio"  type="xs:string" minOccurs="0"/>
+                <xs:element name="dataHoraTermino" type="xs:string" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="atualizarReservaResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="sucesso"  type="xs:boolean"/>
+                <xs:element name="mensagem" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="deletarReservaRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id" type="xs:int"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="deletarReservaResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="sucesso"  type="xs:boolean"/>
+                <xs:element name="mensagem" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="cancelarReservaRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id"       type="xs:int"/>
+                <xs:element name="motivo"   type="xs:string" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="cancelarReservaResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="sucesso"  type="xs:boolean"/>
+                <xs:element name="mensagem" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="buscarReservaRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id" type="xs:int"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="buscarReservaResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="reserva" type="tns:ReservaInfo"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="listarReservasRequest">
+        <xs:complexType>
+            <xs:sequence/> 
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="listarReservasResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="reservas" type="tns:ReservaInfo"
+                            minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>
