@@ -6,7 +6,6 @@ public class ReservaDTO {
     private Integer id;
     private Integer espacoId;
     private String nomeEspaco;
-    private Integer usuarioId;
     private String cpfUsuario;
     private OffsetDateTime dataHoraInicio;
     private OffsetDateTime dataHoraTermino;
@@ -20,9 +19,6 @@ public class ReservaDTO {
 
     public String getNomeEspaco() { return nomeEspaco; }
     public void setNomeEspaco(String nomeEspaco) { this.nomeEspaco = nomeEspaco; }
-
-    public Integer getUsuarioId() { return usuarioId; }
-    public void setUsuarioId(Integer usuarioId) { this.usuarioId = usuarioId; }
 
     public String getCpfUsuario() { return cpfUsuario; }
     public void setCpfUsuario(String cpfUsuario) { this.cpfUsuario = cpfUsuario; }

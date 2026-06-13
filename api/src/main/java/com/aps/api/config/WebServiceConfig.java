@@ -68,4 +68,34 @@ public class WebServiceConfig {
         wsdl.setSchema(reservaSchema);
         return wsdl;
     }
+
+    @Bean
+    public XsdSchema disponibilidadeSchema() {
+        return new SimpleXsdSchema(new ClassPathResource("wsdl/disponibilidade.xsd"));
+    }
+
+    @Bean(name = "disponibilidade")
+    public DefaultWsdl11Definition disponibilidadeWsdl(XsdSchema disponibilidadeSchema) {
+        DefaultWsdl11Definition wsdl = new DefaultWsdl11Definition();
+        wsdl.setPortTypeName("DisponibilidadePort");
+        wsdl.setLocationUri("/ws");
+        wsdl.setTargetNamespace("http://www.aps.com/api/disponibilidade");
+        wsdl.setSchema(disponibilidadeSchema);
+        return wsdl;
+    }
+
+    @Bean
+    public XsdSchema relatorioSchema() {
+        return new SimpleXsdSchema(new ClassPathResource("wsdl/relatorio.xsd"));
+    }
+
+    @Bean(name = "relatorio")
+    public DefaultWsdl11Definition relatorioWsdl(XsdSchema relatorioSchema) {
+        DefaultWsdl11Definition wsdl = new DefaultWsdl11Definition();
+        wsdl.setPortTypeName("RelatorioPort");
+        wsdl.setLocationUri("/ws");
+        wsdl.setTargetNamespace("http://www.aps.com/api/relatorio");
+        wsdl.setSchema(relatorioSchema);
+        return wsdl;
+    }
 }

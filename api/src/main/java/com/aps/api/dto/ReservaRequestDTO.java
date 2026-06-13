@@ -3,13 +3,13 @@ package com.aps.api.dto;
 import java.time.OffsetDateTime;
 
 public class ReservaRequestDTO {
-    private Integer usuarioId;
+    private String cpf;
     private Integer espacoId;
     private OffsetDateTime dataHoraInicio;
     private OffsetDateTime dataHoraTermino;
 
-    public Integer getUsuarioId() { return usuarioId; }
-    public void setUsuarioId(Integer usuarioId) { this.usuarioId = usuarioId; }
+    public String getCpf() { return cpf; }
+    public void setCpf(String cpf) { this.cpf = cpf; }
 
     public Integer getEspacoId() { return espacoId; }
     public void setEspacoId(Integer espacoId) { this.espacoId = espacoId; }

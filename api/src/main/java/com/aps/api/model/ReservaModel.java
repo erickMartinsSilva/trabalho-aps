@@ -22,7 +22,7 @@ public class ReservaModel {
     private OffsetDateTime dataHoraTermino;
 
     @ManyToOne
-    @JoinColumn(name = "usuario_id", nullable = false)
+    @JoinColumn(name = "usuario_cpf", nullable = false)
     private UsuarioModel usuario;
 
     @ManyToOne
