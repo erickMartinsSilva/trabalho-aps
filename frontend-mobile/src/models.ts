@@ -15,6 +15,7 @@ export type EspacoStatusValue = typeof EspacoStatus[keyof typeof EspacoStatus]
 export interface Espaco {
   id: number
   nome: string
+  descricao?: string
   capacidadeMaxima: number
   status: EspacoStatusValue
 }
