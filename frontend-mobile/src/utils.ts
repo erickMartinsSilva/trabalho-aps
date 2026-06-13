@@ -24,3 +24,16 @@ export function cpfValido(cpf: string): boolean {
 
   return cpfValido
 }
+
+export function isTimeInPast(data: Date, time: string) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  if (data.getTime() > today.getTime()) return false
+
+  const timeSplit = time.split(":")
+  const now = new Date()
+  const nowMinutes = now.getHours() * 60 + now.getMinutes()
+  const timeMinutes = Number(timeSplit[0]) * 60 + Number(timeSplit[1])
+  
+  return nowMinutes > timeMinutes
+}
