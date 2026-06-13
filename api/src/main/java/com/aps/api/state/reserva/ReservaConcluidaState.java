@@ -1,17 +1,8 @@
-package com.condominio.state.reserva;
+package com.aps.api.state.reserva;
 
-import com.condominio.model.Reserva;
+import com.aps.api.model.Reserva;
 
-/**
- * Estado CONCLUIDA da Reserva — estado final.
- *
- * Atingido automaticamente quando:
- *   dataHoraAtual > dataHoraFinal  (conforme Statemachine Diagram-reserva)
- *
- * Nenhuma transição é permitida a partir deste estado.
- */
 public class ReservaConcluidaState implements ReservaState {
-
     @Override
     public void cancelar(Reserva reserva) {
         throw new IllegalStateException(
@@ -20,7 +11,7 @@ public class ReservaConcluidaState implements ReservaState {
 
     @Override
     public void verificarConclusao(Reserva reserva) {
-        // Já está concluída; não faz nada (idempotente)
+        // Já está concluída, não faz nada
     }
 
     @Override
