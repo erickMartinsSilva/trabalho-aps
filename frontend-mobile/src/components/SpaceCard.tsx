@@ -7,14 +7,14 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { StatusBadge } from '@/components/StatusBadge'
-import type { BadgeStatus } from '@/components/StatusBadge'
+import type { EspacoStatusValue } from '@/models'
 import { cn } from '@/lib/utils'
 
 export interface SpaceCardProps {
   id: number
   nome: string
   capacidadeMaxima: number
-  status: BadgeStatus
+  status: EspacoStatusValue
   onClick?: () => void
   className?: string
 }
