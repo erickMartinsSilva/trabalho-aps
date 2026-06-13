@@ -14,7 +14,7 @@ import { StatusBadge } from '@/components/StatusBadge'
 
 export default function ProfilePage() {
   return (
-    <div className="px-4 pt-6 space-y-6">
+    <div className="min-h-svh px-4 pt-6 space-y-6">
       <h1 className="text-[22px] font-medium">Perfil</h1>
 
       <Card className="rounded-md">
@@ -26,10 +26,10 @@ export default function ProfilePage() {
           <div>
             <p className="text-[11px] font-medium uppercase tracking-[0.07em] text-muted-foreground mb-2">Status badges</p>
             <div className="flex flex-wrap gap-2">
-              <StatusBadge status="available" />
+              {/* <StatusBadge status="available" />
               <StatusBadge status="occupied" />
               <StatusBadge status="pending" />
-              <StatusBadge status="reserved" />
+              <StatusBadge status="reserved" /> */}
             </div>
           </div>
 

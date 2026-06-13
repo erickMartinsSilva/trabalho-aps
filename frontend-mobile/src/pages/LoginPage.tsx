@@ -1,7 +1,6 @@
+import InputGroup from "@/components/InputLabel";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { cpfValido } from "@/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router";
@@ -13,80 +12,80 @@ interface LoginPageFormData {
 
 export default function LoginPage() {
   const [formData, setFormData] = useState<LoginPageFormData>({
-    cpf: undefined,
-    password: undefined
+    cpf: "",
+    password: ""
   })
-  const [errors, setErrors] = useState<{cpf?: string, password?: string}>({
-    cpf: undefined,
-    password: undefined
+  const [errors, setErrors] = useState<LoginPageFormData>({
+    cpf: "",
+    password: ""
   })
 
   const navigate = useNavigate()
 
-  const formSubmittable = !!formData.cpf && !!formData.password
-
   const onSubmit = () => {
-    let newErrors: typeof errors = {}
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@.#$!%*?&]{8,15}/
-
-    const { cpf, password } = formData
-    if(!cpf || !password) {
-      return
+    const { valid, formErrors } = validateFormSubmission(formData)
+    if(!valid) {
+      return setErrors(formErrors)
     }
-    if(!cpfValido(cpf)) {
+
+    navigate("/home")
+  }
+
+  const validateFormSubmission = (form: LoginPageFormData) => {
+    const newErrors = {cpf: "", password: ""}
+
+    if(!cpfValido(form.cpf)) {
       newErrors.cpf = "CPF inválido"
     }
-    const passwordValid = password.length <= 8 && regex.test(password)
+
+    const passwordValidationRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[^\s]{8,15}$/
+    const passwordValid = form.password.length >= 8 && passwordValidationRegex.test(form.password)
     if(!passwordValid) {
-      newErrors.password = "Senha inválida. Senha deve ter pelo menos 8 caracteres e deve ser composta de números e letras maiúsculas e minúsculas"
+      newErrors.password = "Senha inválida. A senha deve ter pelo menos 8 caracteres e deve ser composta de números e letras maiúsculas e minúsculas"
     }
 
-    if(Object.values(newErrors).length) {
-      return setErrors(newErrors)
+    const valid = newErrors.cpf === "" && newErrors.password === ""
+    return {
+      valid,
+      formErrors: newErrors
     }
-    navigate("/")
   }
+
+  const formSubmittable = !!formData.cpf && !!formData.password
 
   return (
     <div className="min-h-svh flex items-center justify-center px-4">
       <Card className="px-4 w-full shadow-2xl">
         <h2 className="text-center">Login</h2>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="cpf">CPF (apenas números)</Label>
-          <Input
-            id="cpf"
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            maxLength={11}
-            placeholder="Insira seu CPF"
-            className={errors.cpf ? "border-red-500 text-red-500" : undefined}
-            onInput={(e) => {
-              setErrors({...errors, cpf: undefined})
-              e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '')
-            }}
-            onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
-          />
-          {errors.cpf && <p className="text-xs font-semibold text-red-500">{errors.cpf}</p>}
-        </div>
+        <InputGroup
+          id="cpf"
+          label="CPF (apenas números)"
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          maxLength={11}
+          placeholder="Insira seu CPF"
+          error={errors.cpf}
+          onInput={() => 
+            setErrors({ ...errors, cpf: "" })
+          }
+          onChange={(event) => setFormData({ ...formData, cpf: event.target.value })}
+        />
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="password">Senha</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="Insira sua senha"
-            className={errors.password ? "border-red-500 text-red-500" : undefined}
-            onInput={() =>
-              setErrors({...errors, password: undefined})
-            }
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          />
-          {errors.password && <p className="text-xs font-semibold text-red-500">{errors.password}</p>}
-        </div>
+        <InputGroup
+          id="password"
+          label="Senha"
+          type="password"
+          placeholder="Insira sua senha"
+          error={errors.password}
+          onInput={() => 
+            setErrors({ ...errors, password: "" })
+          }
+          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+        />
 
-        <Button className={"mx-auto"} onClick={onSubmit} disabled={!formSubmittable}>
+        <Button size="lg" className={"mx-auto"} onClick={onSubmit} disabled={!formSubmittable}>
           Entrar
         </Button>
       </Card>

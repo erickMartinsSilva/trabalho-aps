@@ -9,17 +9,11 @@ import {
 } from '@/components/ui/card'
 import { SpaceCard } from '@/components/SpaceCard'
 import { IconSearch, IconBell, IconSettings } from '@tabler/icons-react'
-
-const SPACES = [
-  { id: 1, nome: 'Sala de Reunião A', capacidadeMaxima: 10, status: 'available' as const },
-  { id: 2, nome: 'Sala Coletiva B',   capacidadeMaxima: 6,  status: 'occupied'  as const },
-  { id: 3, nome: 'Espaço Criativo',   capacidadeMaxima: 4,  status: 'pending'   as const },
-  { id: 4, nome: 'Sala de Projetos',  capacidadeMaxima: 8,  status: 'reserved'  as const },
-]
+import { ESPACOS } from '@/data'
 
 export default function HomePage() {
   return (
-    <div className="px-4 pt-6 space-y-6">
+    <div className="flex-1 flex flex-col overflow-hidden px-4 pt-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-[13px] text-muted-foreground">Bom dia 👋</p>
@@ -60,10 +54,10 @@ export default function HomePage() {
         </Card>
       </div>
 
-      <section aria-labelledby="spaces-heading">
-        <h2 id="spaces-heading" className="text-[17px] font-medium mb-3">Espaços recentes</h2>
+      <h2 id="spaces-heading" className="text-[17px] font-medium mb-3">Espaços recentes</h2>
+      <section aria-labelledby="spaces-heading" className='overflow-y-auto'>
         <div className="space-y-3">
-          {SPACES.map((s) => (
+          {ESPACOS.map((s) => (
             <SpaceCard key={s.id} {...s} onClick={() => alert(`Abrir espaço #${s.id}`)} />
           ))}
         </div>
