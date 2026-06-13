@@ -58,7 +58,7 @@ export default function HomePage() {
       <section aria-labelledby="spaces-heading" className='overflow-y-auto'>
         <div className="space-y-3">
           {ESPACOS.map((s) => (
-            <SpaceCard key={s.id} {...s} onClick={() => alert(`Abrir espaço #${s.id}`)} />
+            <SpaceCard key={s.id} {...s} />
           ))}
         </div>
       </section>

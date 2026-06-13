@@ -132,7 +132,7 @@ export default function SpacesPage() {
           </div>
         }
         {filteredSpaces.map((s) => (
-          <SpaceCard key={s.id} {...s} onClick={() => alert(`Abrir espaço #${s.id}`)} />
+          <SpaceCard key={s.id} {...s}/>
         ))}
       </div>
     </div>

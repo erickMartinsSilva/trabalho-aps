@@ -9,6 +9,7 @@ import {
 import { StatusBadge } from '@/components/StatusBadge'
 import type { EspacoStatusValue } from '@/models'
 import { cn } from '@/lib/utils'
+import { useNavigate } from 'react-router'
 
 export interface SpaceCardProps {
   id: number
@@ -27,12 +28,14 @@ export function SpaceCard({
   onClick,
   className,
 }: SpaceCardProps) {
+  const navigate = useNavigate()
+
   return (
     <Card
       id={`space-card-${id}`}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
-      onClick={onClick}
+      onClick={() => onClick ?? navigate(`/spaces/${id}`)}
       onKeyDown={
         onClick
           ? (e) => { if (e.key === 'Enter' || e.key === ' ') onClick() }

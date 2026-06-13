@@ -8,6 +8,7 @@ import ProfilePage from '@/pages/ProfilePage'
 import './App.css'
 import LoginPage from './pages/LoginPage'
 import { BottomMenu } from './components/BottomMenu'
+import SpacePage from './pages/SpacePage'
 
 function AppShell() {
   const [dark, setDark] = useState(false)
@@ -50,6 +51,7 @@ function AppShell() {
           <Route path="/"         element={<LoginPage />} />
           <Route path="/home"    element={<HomePage/>}/>
           <Route path="/spaces"   element={<SpacesPage />} />
+          <Route path="/spaces/:id"   element={<SpacePage />} />
           <Route path="/bookings" element={<BookingsPage />} />
           <Route path="/profile"  element={<ProfilePage />} />
         </Routes>
