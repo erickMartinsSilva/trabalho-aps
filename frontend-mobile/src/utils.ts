@@ -1,4 +1,8 @@
 export function cpfValido(cpf: string): boolean {
+  const regexSomenteNumeros = /^\d+$/
+  const cpfFormatoValido = cpf.length === 11 && regexSomenteNumeros.test(cpf)
+  if(!cpfFormatoValido) return false
+
   let somaPrimeiroDigito = 0, restoPrimeiroDigito = 0
   let somaSegundoDigito = 0, restoSegundoDigito = 0
   const digitos = cpf.slice(0, 9)
