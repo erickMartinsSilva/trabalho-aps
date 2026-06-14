@@ -8,7 +8,7 @@ export function cpfValido(cpf: string): boolean {
   const digitos = cpf.slice(0, 9)
 
   for(let i: number = 0; i < digitos.length; i++) {
-    somaPrimeiroDigito += Number(digitos.at(i)) * i+1
+    somaPrimeiroDigito += Number(digitos.at(i)) * (i+1)
     somaSegundoDigito += Number(digitos.at(i)) * i
   }
 
