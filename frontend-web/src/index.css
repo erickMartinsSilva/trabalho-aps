@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --color-background:             var(--background);
+  --color-foreground:             var(--foreground);
+  --color-card:                   var(--card);
+  --color-card-foreground:        var(--card-foreground);
+  --color-popover:                var(--popover);
+  --color-popover-foreground:     var(--popover-foreground);
+  --color-primary:                var(--primary);
+  --color-primary-foreground:     var(--primary-foreground);
+  --color-secondary:              var(--secondary);
+  --color-secondary-foreground:   var(--secondary-foreground);
+  --color-muted:                  var(--muted);
+  --color-muted-foreground:       var(--muted-foreground);
+  --color-accent:                 var(--accent);
+  --color-accent-foreground:      var(--accent-foreground);
+  --color-destructive:            var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border:                 var(--border);
+  --color-input:                  var(--input);
+  --color-ring:                   var(--ring);
+
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-pill: 999px;
+
+  --spacing-1:  4px;
+  --spacing-2:  8px;
+  --spacing-3:  12px;
+  --spacing-4:  16px;
+  --spacing-5:  20px;
+  --spacing-6:  24px;
+  --spacing-8:  32px;
+  --spacing-10: 40px;
+}
+
+:root {
+  --radius: 0.5rem;
+
+  --background:           oklch(0.972 0.006 75);
+  --foreground:           oklch(0.194 0.005 75);
+  --card:                 oklch(0.928 0.010 75);
+  --card-foreground:      oklch(0.194 0.005 75);
+  --popover:              oklch(0.972 0.006 75);
+  --popover-foreground:   oklch(0.194 0.005 75);
+  --primary:              oklch(0.408 0.100 243);
+  --primary-foreground:   oklch(1 0 0);
+  --secondary:            oklch(0.928 0.010 75);
+  --secondary-foreground: oklch(0.194 0.005 75);
+  --muted:                oklch(0.928 0.010 75);
+  --muted-foreground:     oklch(0.412 0.006 75);
+  --accent:               oklch(0.956 0.025 243);
+  --accent-foreground:    oklch(0.260 0.075 243);
+  --destructive:          oklch(0.432 0.130 22);
+  --destructive-foreground: oklch(1 0 0);
+  --border:               oklch(0.719 0.008 75);
+  --input:                oklch(0.719 0.008 75);
+  --ring:                 oklch(0.408 0.100 243);
+
+  --color-success:        oklch(0.599 0.130 168);
+  --color-success-light:  oklch(0.947 0.045 168);
+  --color-success-dark:   oklch(0.308 0.090 168);
+  --color-warning:        oklch(0.575 0.135 68);
+  --color-warning-light:  oklch(0.953 0.050 80);
+  --color-warning-dark:   oklch(0.347 0.110 52);
+  --color-reserved:       oklch(0.956 0.025 243);
+  --color-reserved-dark:  oklch(0.260 0.075 243);
+
+  --sidebar:              oklch(0.972 0.006 75);
+  --sidebar-foreground:   oklch(0.194 0.005 75);
+  --sidebar-primary:      oklch(0.408 0.100 243);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent:       oklch(0.956 0.025 243);
+  --sidebar-accent-foreground: oklch(0.260 0.075 243);
+  --sidebar-border:       oklch(0.719 0.008 75);
+  --sidebar-ring:         oklch(0.408 0.100 243);
+}
+
+.dark {
+  --background:           oklch(0.138 0.015 260);
+  --foreground:           oklch(0.910 0.008 80);
+  --card:                 oklch(0.178 0.015 260);
+  --card-foreground:      oklch(0.910 0.008 80);
+  --popover:              oklch(0.178 0.015 260);
+  --popover-foreground:   oklch(0.910 0.008 80);
+  --primary:              oklch(0.600 0.120 243);
+  --primary-foreground:   oklch(1 0 0);
+  --secondary:            oklch(0.215 0.018 260);
+  --secondary-foreground: oklch(0.910 0.008 80);
+  --muted:                oklch(0.215 0.018 260);
+  --muted-foreground:     oklch(0.620 0.010 80);
+  --accent:               oklch(0.248 0.060 243);
+  --accent-foreground:    oklch(0.810 0.060 243);
+  --destructive:          oklch(0.570 0.165 22);
+  --destructive-foreground: oklch(1 0 0);
+  --border:               oklch(1 0 0 / 12%);
+  --input:                oklch(1 0 0 / 16%);
+  --ring:                 oklch(0.600 0.120 243);
+
+  --color-success:        oklch(0.680 0.130 168);
+  --color-success-light:  oklch(0.248 0.065 168);
+  --color-success-dark:   oklch(0.820 0.080 168);
+  --color-warning:        oklch(0.670 0.140 68);
+  --color-warning-light:  oklch(0.260 0.065 68);
+  --color-warning-dark:   oklch(0.840 0.085 80);
+  --color-reserved:       oklch(0.248 0.060 243);
+  --color-reserved-dark:  oklch(0.810 0.060 243);
+
+  --sidebar:              oklch(0.178 0.015 260);
+  --sidebar-foreground:   oklch(0.910 0.008 80);
+  --sidebar-primary:      oklch(0.600 0.120 243);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent:       oklch(0.248 0.060 243);
+  --sidebar-accent-foreground: oklch(0.810 0.060 243);
+  --sidebar-border:       oklch(1 0 0 / 12%);
+  --sidebar-ring:         oklch(0.600 0.120 243);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    height: 100%;
+    background-color: #0d1117;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    width: 100%;
+    /* Removemos o max-width: 430px e o margin: 0 auto que limitavam a tela */
+    min-height: 100svh;
+    font-size: 15px;
+    line-height: 1.6;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Removemos o @media (min-width: 431px) que colocava a borda de celular */
+
+  h1 { font-size: 32px; font-weight: 500; }
+  h2 { font-size: 22px; font-weight: 500; }
+  h3 { font-size: 17px; font-weight: 500; }
+}
