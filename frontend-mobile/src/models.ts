@@ -25,7 +25,7 @@ export interface Reserva {
   dataHoraInicio: Date
   dataHoraTermino: Date
   espacoId: number
-  usuarioId: number
+  usuarioId?: number
   status: ReservaStatusValue
 }
 
