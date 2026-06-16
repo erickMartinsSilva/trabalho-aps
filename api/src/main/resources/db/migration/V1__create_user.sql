@@ -1,0 +1,6 @@
+-- Create-user v1
+
+CREATE TABLE IF NOT EXISTS usuario(
+    cpf VARCHAR(11) PRIMARY KEY,
+    senha VARCHAR(50) NOT NULL
+);
