@@ -16,6 +16,7 @@
     <xs:element name="cadastrarEspacoRequest">
         <xs:complexType>
             <xs:sequence>
+                <xs:element name="cpf"              type="xs:string"/>
                 <xs:element name="nome"             type="xs:string"/>
                 <xs:element name="capacidadeMaxima" type="xs:int"/>
             </xs:sequence>
@@ -34,6 +35,7 @@
     <xs:element name="atualizarEspacoRequest">
         <xs:complexType>
             <xs:sequence>
+                <xs:element name="cpf"              type="xs:string"/>
                 <xs:element name="id"               type="xs:int"/>
                 <xs:element name="nome"             type="xs:string" minOccurs="0"/>
                 <xs:element name="capacidadeMaxima" type="xs:int"    minOccurs="0"/>
@@ -53,7 +55,8 @@
     <xs:element name="deletarEspacoRequest">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="id" type="xs:int"/>
+                <xs:element name="cpf" type="xs:string"/>
+                <xs:element name="id"  type="xs:int"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -101,12 +104,31 @@
     <xs:element name="fecharEspacoRequest">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="id" type="xs:int"/>
+                <xs:element name="cpf" type="xs:string"/>
+                <xs:element name="id"  type="xs:int"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
 
     <xs:element name="fecharEspacoResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="sucesso"  type="xs:boolean"/>
+                <xs:element name="mensagem" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="reabrirEspacoRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="cpf" type="xs:string"/>
+                <xs:element name="id"  type="xs:int"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="reabrirEspacoResponse">
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="sucesso"  type="xs:boolean"/>
