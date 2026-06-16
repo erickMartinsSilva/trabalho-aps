@@ -1,14 +1,25 @@
 import { useState } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router'
 import { IconSun, IconMoon } from '@tabler/icons-react'
 import HomePage from '@/pages/HomePage'
 import SpacesPage from '@/pages/SpacesPage'
 import BookingsPage from '@/pages/BookingsPage'
-import ProfilePage from '@/pages/ProfilePage'
 import './App.css'
 import LoginPage from './pages/LoginPage'
 import { BottomMenu } from './components/BottomMenu'
 import SpacePage from './pages/SpacePage'
+import AdminPage from './pages/AdminPage'
+import AdminSpacesPage from './pages/AdminSpacesPage'
+import AdminBookingsPage from './pages/AdminBookingsPage'
+import AdminUsersPage from './pages/AdminUsersPage'
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const role = localStorage.getItem('role')
+  if (role !== 'admin') {
+    return <Navigate to="/" replace />
+  }
+  return <>{children}</>
+}
 
 function AppShell() {
   const [dark, setDark] = useState(false)
@@ -17,6 +28,8 @@ function AppShell() {
     setDark((d) => !d)
     document.documentElement.classList.toggle('dark')
   }
+
+  const userIsAdmin = localStorage.getItem("role") === "admin"
 
   return (
     <div className="flex flex-col h-svh overflow-hidden bg-background">
@@ -53,9 +66,12 @@ function AppShell() {
           <Route path="/spaces"   element={<SpacesPage />} />
           <Route path="/spaces/:id"   element={<SpacePage />} />
           <Route path="/bookings" element={<BookingsPage />} />
-          <Route path="/profile"  element={<ProfilePage />} />
+          <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
+          <Route path="/admin/spaces" element={<AdminRoute><AdminSpacesPage /></AdminRoute>} />
+          <Route path="/admin/bookings" element={<AdminRoute><AdminBookingsPage /></AdminRoute>} />
+          <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
         </Routes>
-        <BottomMenu/>
+        {!userIsAdmin && <BottomMenu/>}
       </main>
 
     </div>

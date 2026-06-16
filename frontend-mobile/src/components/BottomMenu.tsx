@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router'
-import { IconHome, IconBuilding, IconCalendar, IconUser } from '@tabler/icons-react'
+import { IconHome, IconBuilding, IconCalendar } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 
 export type NavItem = {
@@ -12,7 +12,6 @@ const NAV_ITEMS: NavItem[] = [
   { path: '/home',     label: 'Início',   Icon: IconHome },
   { path: '/spaces',   label: 'Espaços',  Icon: IconBuilding },
   { path: '/bookings', label: 'Reservas', Icon: IconCalendar },
-  { path: '/profile',  label: 'Perfil',   Icon: IconUser },
 ]
 
 interface BottomMenuProps {

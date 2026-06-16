@@ -8,12 +8,14 @@ import { useNavigate } from "react-router";
 interface LoginPageFormData {
   cpf: string
   password: string
+  isAdmin?: boolean
 }
 
 export default function LoginPage() {
   const [formData, setFormData] = useState<LoginPageFormData>({
     cpf: "",
-    password: ""
+    password: "",
+    isAdmin: false
   })
   const [errors, setErrors] = useState<LoginPageFormData>({
     cpf: "",
@@ -28,7 +30,13 @@ export default function LoginPage() {
       return setErrors(formErrors)
     }
 
-    navigate("/home")
+    if (formData.isAdmin) {
+      localStorage.setItem('role', 'admin')
+      navigate("/admin")
+    } else {
+      localStorage.setItem('role', 'user')
+      navigate("/home")
+    }
   }
 
   const validateFormSubmission = (form: LoginPageFormData) => {
@@ -84,6 +92,17 @@ export default function LoginPage() {
           }
           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
         />
+
+        <div className="flex items-center gap-2 mb-6 mt-4">
+          <input 
+            type="checkbox" 
+            id="isAdmin" 
+            checked={formData.isAdmin}
+            onChange={(e) => setFormData({ ...formData, isAdmin: e.target.checked })}
+            className="w-4 h-4"
+          />
+          <label htmlFor="isAdmin" className="text-sm font-medium">Mock: Logar como Administrador</label>
+        </div>
 
         <Button size="lg" className={"mx-auto"} onClick={onSubmit} disabled={!formSubmittable}>
           Entrar

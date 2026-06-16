@@ -57,7 +57,7 @@ export default function SpacePage() {
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    const dateInPast = today.getTime() > formData.data.getTime()
+    const dateInPast = formData.data ? today.getTime() > formData.data.getTime() : false
     if(dateInPast) {
       newErrors.data = "Data da reserva não pode estar no passado"
       return {
@@ -72,8 +72,8 @@ export default function SpacePage() {
       hourErrorMessage = "Hora de início não pode estar depois da hora de fim"
       newErrors.horaInicio = hourErrorMessage
     }
-    const horaInicioInPast = isTimeInPast(formData.data, formData.horaInicio)
-    const horaFimInPast = isTimeInPast(formData.data, formData.horaFim)
+    const horaInicioInPast = formData.data ? isTimeInPast(formData.data, formData.horaInicio) : false
+    const horaFimInPast = formData.data ? isTimeInPast(formData.data, formData.horaFim) : false
     if(horaInicioInPast) {
       hourErrorMessage = "Horário não pode estar no passado"
       newErrors.horaInicio = hourErrorMessage
@@ -89,7 +89,7 @@ export default function SpacePage() {
     }
   }
   
-  const spaceInMaintenance = space.status === EspacoStatus.MANUTENCAO
+  const spaceInMaintenance = space?.status === EspacoStatus.MANUTENCAO
   const formSubmittable = (!!formData.data && !!formData.horaInicio && !!formData.horaFim) && !spaceInMaintenance
   
   if(!space) {

@@ -7,8 +7,13 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { StatusBadge } from '@/components/StatusBadge'
-import type { ReservaStatusValue } from '@/models'
+import { ReservaStatus, type ReservaStatusValue } from '@/models'
 import { cn } from '@/lib/utils'
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle as DialogTitleUI, DialogTrigger } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { useState } from 'react'
+import { ESPACOS } from '@/data'
+import { format } from 'date-fns'
 
 export interface BookingCardProps {
   id: number
@@ -39,12 +44,22 @@ export function BookingCard({
   onClick,
   className,
 }: BookingCardProps) {
+  const [cancelBookingButtonPressed, setCancelBookingButtonPressed] = useState<boolean>(false)
+
   const StatusIcon =
     status === 'Cancelada' ? IconCalendarX
     : status === 'Concluída' ? IconCalendarCheck
     : IconCalendar
 
-  return (
+  const currentBookingCancellable = status === ReservaStatus.CONFIRMADA
+  const currentBookingSpace = ESPACOS.find((e) => e.id === espacoId)
+
+  const onConfirmCancelBooking = () => {
+    alert(`Reserva número ${id} cancelada com sucesso!`)
+    setCancelBookingButtonPressed(false)
+  }
+
+  const cardContent = (
     <Card
       id={`booking-card-${id}`}
       role={onClick ? 'button' : undefined}
@@ -57,8 +72,7 @@ export function BookingCard({
       }
       className={cn(
         'rounded-md border border-border bg-card transition-shadow',
-        onClick &&
-          'cursor-pointer hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        'cursor-pointer hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         className,
       )}
     >
@@ -67,7 +81,7 @@ export function BookingCard({
           <div className="flex items-center gap-2 min-w-0">
             <StatusIcon size={20} className="shrink-0 text-muted-foreground" aria-hidden="true" />
             <CardTitle className="text-[17px] font-medium leading-tight">
-              {espacoNome ?? `Espaço #${espacoId}`}
+              {espacoNome ?? currentBookingSpace?.nome ?? `Espaço #${espacoId}`}
             </CardTitle>
           </div>
           <StatusBadge status={status} className="shrink-0" />
@@ -91,5 +105,75 @@ export function BookingCard({
         </p>
       </CardFooter>
     </Card>
+  )
+
+  return (
+    <>
+      <Dialog>
+        <DialogTrigger className="w-full text-left">
+          {cardContent}
+        </DialogTrigger>
+        <DialogContent hidden={cancelBookingButtonPressed} className="w-[90vw] max-w-[350px] rounded-lg">
+          <DialogHeader>
+            <DialogTitleUI className="col-span-2">Reserva #{id}</DialogTitleUI>
+          </DialogHeader>
+
+          <section className='flex flex-col gap-2'>
+            <p className='flex justify-between'>
+              <span>Status:</span>
+              <StatusBadge status={status}/>
+            </p>
+            <p className='flex justify-between'>
+              <span>Espaço:</span><span>{currentBookingSpace ? currentBookingSpace.nome : "Não identificado"}</span>
+            </p>
+            <p className='flex justify-between'>
+              <span>Data:</span><span>{format(dataHoraInicio, "P")}</span>
+            </p>
+            <p className='flex justify-between'>
+              <span>Horário de Início:</span><span>{dataHoraInicio.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</span>
+            </p>
+            <p className='flex justify-between'>
+              <span>Horário de Término:</span><span>{dataHoraTermino.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</span>
+            </p>
+          </section>
+          
+          <DialogFooter className='grid grid-cols-3'>
+            <DialogClose>
+              <Button variant="outline" className="w-full">
+                Voltar
+              </Button>
+            </DialogClose>
+            <Button
+              variant='destructive'
+              className="col-start-3"
+              disabled={!currentBookingCancellable}
+              onClick={() => setCancelBookingButtonPressed(true)}
+            >
+              Cancelar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {cancelBookingButtonPressed && 
+        <Dialog open={true} onOpenChange={setCancelBookingButtonPressed}>
+          <DialogContent className="w-[90vw] max-w-[350px] rounded-lg">
+            <DialogHeader>
+              <DialogTitleUI>Cancelar Reserva</DialogTitleUI>
+            </DialogHeader>
+            <p>Tem certeza que deseja cancelar esta reserva?</p>
+            <p className='font-bold text-red-800'>Esta ação não pode ser desfeita.</p>
+            <DialogFooter className='grid grid-cols-3'>
+              <DialogClose>
+                <Button variant="outline" className="w-full">Não</Button>
+              </DialogClose>
+              <Button variant='destructive' className="w-full col-start-3" onClick={onConfirmCancelBooking}>
+                Sim
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      }
+    </>
   )
 }
