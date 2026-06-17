@@ -1,7 +1,6 @@
 import { useNavigate, useLocation } from 'react-router'
 import { IconHome, IconBuilding, IconCalendar } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
-import type { ReactElement } from 'react'
 
 export type NavItem = {
   path: string
