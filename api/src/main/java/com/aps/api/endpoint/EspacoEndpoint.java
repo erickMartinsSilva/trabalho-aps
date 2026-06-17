@@ -59,7 +59,7 @@ public class EspacoEndpoint {
         Document doc = parse(request);
         String cpf = el(doc, "cpf");
         if (!usuarioService.isAdmin(cpf)) return naoAutorizado("cadastrarEspacoResponse");
-        boolean sucesso = espacoService.cadastrarEspaco(cpf, el(doc, "nome"), Integer.parseInt(el(doc, "capacidadeMaxima")));
+        boolean sucesso = espacoService.cadastrarEspaco(cpf, el(doc, "nome"), el(doc, "descricao"), Integer.parseInt(el(doc, "capacidadeMaxima")));
         return resp("cadastrarEspacoResponse", body(sucesso, "Espaço cadastrado com sucesso", "Erro ao cadastrar espaço"));
     }
 
@@ -71,7 +71,7 @@ public class EspacoEndpoint {
         if (!usuarioService.isAdmin(cpf)) return naoAutorizado("atualizarEspacoResponse");
         String capStr = el(doc, "capacidadeMaxima");
         Integer cap = capStr != null && !capStr.isBlank() ? Integer.parseInt(capStr) : null;
-        boolean sucesso = espacoService.atualizarEspaco(cpf, Integer.parseInt(el(doc, "id")), el(doc, "nome"), cap);
+        boolean sucesso = espacoService.atualizarEspaco(cpf, Integer.parseInt(el(doc, "id")), el(doc, "nome"), el(doc, "descricao"), cap);
         return resp("atualizarEspacoResponse", body(sucesso, "Espaço atualizado com sucesso", "Espaço não encontrado"));
     }
 
@@ -95,10 +95,14 @@ public class EspacoEndpoint {
                 "<tns:espaco><tns:id>0</tns:id><tns:nome></tns:nome>" +
                 "<tns:capacidadeMaxima>0</tns:capacidadeMaxima><tns:status></tns:status></tns:espaco>");
         }
+        
+        String desc = e.get("descricao") != null ? "<tns:descricao>" + e.get("descricao") + "</tns:descricao>" : "";
+        
         return resp("buscarEspacoResponse",
             "<tns:espaco>" +
               "<tns:id>" + e.get("id") + "</tns:id>" +
               "<tns:nome>" + e.get("nome") + "</tns:nome>" +
+              desc +
               "<tns:capacidadeMaxima>" + e.get("capacidademax") + "</tns:capacidadeMaxima>" +
               "<tns:status>" + e.get("status") + "</tns:status>" +
             "</tns:espaco>");
@@ -110,9 +114,11 @@ public class EspacoEndpoint {
         List<Map<String, Object>> espacos = espacoService.listarEspacos();
         StringBuilder sb = new StringBuilder();
         for (Map<String, Object> e : espacos) {
+            String desc = e.get("descricao") != null ? "<tns:descricao>" + e.get("descricao") + "</tns:descricao>" : "";
             sb.append("<tns:espacos>")
               .append("<tns:id>").append(e.get("id")).append("</tns:id>")
               .append("<tns:nome>").append(e.get("nome")).append("</tns:nome>")
+              .append(desc)
               .append("<tns:capacidadeMaxima>").append(e.get("capacidademax")).append("</tns:capacidadeMaxima>")
               .append("<tns:status>").append(e.get("status")).append("</tns:status>")
               .append("</tns:espacos>");

@@ -20,15 +20,15 @@ public class EspacoServiceImpl implements EspacoService {
     private UsuarioService usuarioService;
 
     @Override
-    public boolean cadastrarEspaco(String cpf, String nome, int capacidadeMax) {
+    public boolean cadastrarEspaco(String cpf, String nome, String descricao, int capacidadeMax) {
         if (!usuarioService.isAdmin(cpf)) return false;
-        return espacoRepository.cadastrar(nome, capacidadeMax);
+        return espacoRepository.cadastrar(nome, descricao, capacidadeMax);
     }
 
     @Override
-    public boolean atualizarEspaco(String cpf, int id, String nome, Integer capacidadeMax) {
+    public boolean atualizarEspaco(String cpf, int id, String nome, String descricao, Integer capacidadeMax) {
         if (!usuarioService.isAdmin(cpf)) return false;
-        return espacoRepository.atualizar(id, nome, capacidadeMax);
+        return espacoRepository.atualizar(id, nome, descricao, capacidadeMax);
     }
 
     @Override

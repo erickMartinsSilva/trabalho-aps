@@ -38,9 +38,11 @@ public class UsuarioEndpoint {
     @ResponsePayload
     public Source login(@RequestPayload Source request) throws Exception {
         Document doc = parse(request);
-        boolean sucesso = usuarioService.login(el(doc, "cpf"), el(doc, "senha"));
+        String cpf = el(doc, "cpf");
+        boolean sucesso = usuarioService.login(cpf, el(doc, "senha"));
         String mensagem = sucesso ? "Login realizado com sucesso" : "CPF ou senha incorretos";
-        return resp("loginResponse", "<tns:sucesso>" + sucesso + "</tns:sucesso><tns:mensagem>" + mensagem + "</tns:mensagem>");
+        boolean isAdmin = sucesso && usuarioService.isAdmin(cpf);
+        return resp("loginResponse", "<tns:sucesso>" + sucesso + "</tns:sucesso><tns:mensagem>" + mensagem + "</tns:mensagem><tns:isAdmin>" + isAdmin + "</tns:isAdmin>");
     }
 
     @PayloadRoot(namespace = NAMESPACE, localPart = "cadastrarUsuarioRequest")

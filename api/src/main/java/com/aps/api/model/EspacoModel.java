@@ -13,6 +13,9 @@ public class EspacoModel {
     @Column(nullable = false, length = 200)
     private String nome;
 
+    @Column(length = 255)
+    private String descricao;
+
     @Column(name = "capacidademax", nullable = false)
     private Integer capacidadeMax;
 
@@ -30,6 +33,13 @@ public class EspacoModel {
     }
     public void setNome(String nome) { 
         this.nome = nome; 
+    }
+
+    public String getDescricao() { 
+        return descricao; 
+    }
+    public void setDescricao(String descricao) { 
+        this.descricao = descricao; 
     }
 
     public Integer getCapacidadeMax() { 

@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 public interface EspacoService {
-    boolean cadastrarEspaco(String cpf, String nome, int capacidadeMax);
-    boolean atualizarEspaco(String cpf, int id, String nome, Integer capacidadeMax);
+    boolean cadastrarEspaco(String cpf, String nome, String descricao, int capacidadeMax);
+    boolean atualizarEspaco(String cpf, int id, String nome, String descricao, Integer capacidadeMax);
     boolean deletarEspaco(String cpf, int id);
     Map<String, Object> buscarEspaco(int id);
     List<Map<String, Object>> listarEspacos();
