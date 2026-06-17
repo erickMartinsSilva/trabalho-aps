@@ -140,7 +140,7 @@ export default function SpacePage() {
 
   return (
     <div className="flex-1 flex flex-col px-4 pt-6 space-y-4 overflow-hidden">
-      <Card className="px-4 m-auto shadow-2xl">
+      <Card className="px-4 m-auto shadow-2xl w-full">
         <div className="flex justify-between">
           <h2>{space.nome}</h2>
   

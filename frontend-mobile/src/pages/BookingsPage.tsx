@@ -22,7 +22,20 @@ export default function BookingsPage() {
     fetchReservas()
   }, [])
 
-  const sortedReservas = [...reservas].sort((a, b) => new Date(b.dataHoraInicio).getTime() - new Date(a.dataHoraInicio).getTime())
+  const sortedReservas = [...reservas].sort((a, b) => {
+    const getWeight = (status: string) => {
+      if (status === 'Confirmada') return 1
+      if (status === 'Concluída') return 2
+      if (status === 'Cancelada') return 3
+      return 4
+    }
+    const weightA = getWeight(a.status)
+    const weightB = getWeight(b.status)
+    if (weightA !== weightB) {
+      return weightA - weightB
+    }
+    return new Date(b.dataHoraInicio).getTime() - new Date(a.dataHoraInicio).getTime()
+  })
 
   return (
     <>

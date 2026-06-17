@@ -19,8 +19,12 @@ export default function AdminSpacesPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [spaceToEdit, setSpaceToEdit] = useState<EspacoInfo | null>(null)
   const [spaceToDelete, setSpaceToDelete] = useState<EspacoInfo | null>(null)
+  const [spaceForMaintenance, setSpaceForMaintenance] = useState<EspacoInfo | null>(null)
+  const [maintenanceAction, setMaintenanceAction] = useState<'close' | 'reopen' | null>(null)
 
   const [createData, setCreateData] = useState({ nome: '', descricao: '', capacidade: '' })
+  const [createCapacityError, setCreateCapacityError] = useState<string | undefined>()
+  const [editCapacityError, setEditCapacityError] = useState<string | undefined>()
   const [editData, setEditData] = useState({ nome: '', descricao: '', capacidade: '' })
 
   const fetchSpaces = () => EspacoService.listarEspacos().then(res => {
@@ -35,9 +39,16 @@ export default function AdminSpacesPage() {
   const adminCpf = localStorage.getItem('cpf') || ''
 
   const handleConfirmCreate = async () => {
+    const cap = Number(createData.capacidade)
+    if (!createData.capacidade || !Number.isInteger(cap) || cap <= 0) {
+      setCreateCapacityError("A capacidade máxima deve ser um número inteiro maior que 0.")
+      return
+    }
     try {
-      await EspacoService.cadastrarEspaco(adminCpf, createData.nome, createData.descricao, Number(createData.capacidade))
+      await EspacoService.cadastrarEspaco(adminCpf, createData.nome, createData.descricao, cap)
       toast.success("Espaço adicionado com sucesso!")
+      setCreateData({ nome: '', descricao: '', capacidade: '' })
+      setCreateCapacityError(undefined)
       setIsCreateOpen(false)
       fetchSpaces()
     } catch(e: any) { console.error(e) }
@@ -45,10 +56,18 @@ export default function AdminSpacesPage() {
 
   const handleConfirmEdit = async () => {
     if (!spaceToEdit) return
+    if (editData.capacidade) {
+      const cap = Number(editData.capacidade)
+      if (!Number.isInteger(cap) || cap <= 0) {
+        setEditCapacityError("A capacidade máxima deve ser um número inteiro maior que 0.")
+        return
+      }
+    }
     try {
       await EspacoService.atualizarEspaco(adminCpf, spaceToEdit.id, editData.nome || undefined, editData.descricao || undefined, editData.capacidade ? Number(editData.capacidade) : undefined)
       toast.success(`Espaço ${spaceToEdit.nome} atualizado com sucesso!`)
       setSpaceToEdit(null)
+      setEditCapacityError(undefined)
       fetchSpaces()
     } catch(e: any) { console.error(e) }
   }
@@ -63,28 +82,33 @@ export default function AdminSpacesPage() {
     } catch(e: any) { console.error(e) }
   }
 
-  const handleFecharEspaco = async (id: number) => {
+  const handleConfirmMaintenance = async () => {
+    if (!spaceForMaintenance || !maintenanceAction) return
+    const id = spaceForMaintenance.id
     try {
-      const res = await EspacoService.fecharEspaco(adminCpf, id)
-      if (res.sucesso) {
-        toast.success("Espaço fechado para manutenção!")
-        fetchSpaces()
+      if (maintenanceAction === 'close') {
+        const res = await EspacoService.fecharEspaco(adminCpf, id)
+        if (res.sucesso) {
+          toast.success("Espaço fechado para manutenção!")
+          fetchSpaces()
+        } else {
+          toast.error("Erro ao fechar espaço: " + res.mensagem)
+        }
       } else {
-        toast.error("Erro ao fechar espaço: " + res.mensagem)
+        const res = await EspacoService.reabrirEspaco(adminCpf, id)
+        if (res.sucesso) {
+          toast.success("Espaço reaberto com sucesso!")
+          fetchSpaces()
+        } else {
+          toast.error("Erro ao reabrir espaço: " + res.mensagem)
+        }
       }
-    } catch(e: any) { console.error(e) }
-  }
-
-  const handleReabrirEspaco = async (id: number) => {
-    try {
-      const res = await EspacoService.reabrirEspaco(adminCpf, id)
-      if (res.sucesso) {
-        toast.success("Espaço reaberto com sucesso!")
-        fetchSpaces()
-      } else {
-        toast.error("Erro ao reabrir espaço: " + res.mensagem)
-      }
-    } catch(e: any) { console.error(e) }
+    } catch(e: any) {
+      console.error(e)
+    } finally {
+      setSpaceForMaintenance(null)
+      setMaintenanceAction(null)
+    }
   }
 
   return (
@@ -114,11 +138,11 @@ export default function AdminSpacesPage() {
                   <IconEdit size={16}/> Editar
                 </Button>
                 {s.status === 'Em manutenção' ? (
-                  <Button variant="secondary" size="sm" className="gap-2 w-full justify-start text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:text-emerald-300" onClick={() => handleReabrirEspaco(s.id)}>
+                  <Button variant="secondary" size="sm" className="gap-2 w-full justify-start text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:text-emerald-300" onClick={() => { setSpaceForMaintenance(s); setMaintenanceAction('reopen') }}>
                     <IconTool size={16}/> Reabrir
                   </Button>
                 ) : (
-                  <Button variant="outline" size="sm" className="gap-2 w-full justify-start text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:text-amber-300" onClick={() => handleFecharEspaco(s.id)}>
+                  <Button variant="outline" size="sm" className="gap-2 w-full justify-start text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:text-amber-300" onClick={() => { setSpaceForMaintenance(s); setMaintenanceAction('close') }}>
                     <IconTool size={16}/> Manutenção
                   </Button>
                 )}
@@ -132,7 +156,7 @@ export default function AdminSpacesPage() {
       </div>
 
       {/* Create Dialog */}
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+      <Dialog open={isCreateOpen} onOpenChange={(open) => { setIsCreateOpen(open); if (!open) { setCreateData({ nome: '', descricao: '', capacidade: '' }); setCreateCapacityError(undefined); } }}>
         <DialogContent className="w-[90vw] max-w-[350px] rounded-lg">
           <DialogHeader>
             <DialogTitle>Adicionar Espaço</DialogTitle>
@@ -140,19 +164,19 @@ export default function AdminSpacesPage() {
           <div className="flex flex-col gap-3 py-4">
             <InputLabel label="Nome" placeholder="Nome do espaço" value={createData.nome} onChange={(e) => setCreateData({...createData, nome: e.target.value})} />
             <InputLabel label="Descrição" placeholder="Descrição opcional" value={createData.descricao} onChange={(e) => setCreateData({...createData, descricao: e.target.value})} />
-            <InputLabel label="Capacidade" type="number" placeholder="Capacidade máxima" value={createData.capacidade} onChange={(e) => setCreateData({...createData, capacidade: e.target.value})} />
+            <InputLabel label="Capacidade" type="number" placeholder="Capacidade máxima" value={createData.capacidade} error={createCapacityError} onChange={(e) => { setCreateData({...createData, capacidade: e.target.value}); setCreateCapacityError(undefined); }} />
           </div>
           <DialogFooter className="grid grid-cols-2 gap-2">
             <DialogClose>
               <Button variant="outline" className="w-full">Cancelar</Button>
             </DialogClose>
-            <Button onClick={handleConfirmCreate} className="w-full">Adicionar</Button>
+            <Button onClick={handleConfirmCreate} className="w-full" disabled={!createData.nome.trim() || !createData.capacidade.trim()}>Adicionar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Edit Dialog */}
-      <Dialog open={!!spaceToEdit} onOpenChange={(open) => !open && setSpaceToEdit(null)}>
+      <Dialog open={!!spaceToEdit} onOpenChange={(open) => { if (!open) { setSpaceToEdit(null); setEditCapacityError(undefined); } }}>
         <DialogContent className="w-[90vw] max-w-[350px] rounded-lg">
           <DialogHeader>
             <DialogTitle>Editar Espaço</DialogTitle>
@@ -161,7 +185,7 @@ export default function AdminSpacesPage() {
             <div className="flex flex-col gap-3 py-4">
               <InputLabel label="Nome" value={editData.nome} onChange={(e) => setEditData({...editData, nome: e.target.value})} />
               <InputLabel label="Descrição" value={editData.descricao} onChange={(e) => setEditData({...editData, descricao: e.target.value})} />
-              <InputLabel label="Capacidade" type="number" value={editData.capacidade} onChange={(e) => setEditData({...editData, capacidade: e.target.value})} />
+              <InputLabel label="Capacidade" type="number" value={editData.capacidade} error={editCapacityError} onChange={(e) => { setEditData({...editData, capacidade: e.target.value}); setEditCapacityError(undefined); }} />
               <div className="flex flex-col gap-2">
                 <Label>Status</Label>
                 <Select defaultValue={spaceToEdit.status}>
@@ -194,6 +218,31 @@ export default function AdminSpacesPage() {
               <Button variant="outline" className="w-full">Não</Button>
             </DialogClose>
             <Button variant="destructive" onClick={handleConfirmDelete} className="w-full">Sim</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Maintenance Confirmation Dialog */}
+      <Dialog open={!!spaceForMaintenance} onOpenChange={(open) => !open && (setSpaceForMaintenance(null), setMaintenanceAction(null))}>
+        <DialogContent className="w-[90vw] max-w-[350px] rounded-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {maintenanceAction === 'close' ? 'Enviar para Manutenção' : 'Reabrir Espaço'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-2">
+            <p>Tem certeza que deseja {maintenanceAction === 'close' ? 'enviar para manutenção' : 'reabrir'} o espaço <strong>{spaceForMaintenance?.nome}</strong>?</p>
+            {maintenanceAction === 'close' && (
+              <p className="text-sm text-muted-foreground font-medium text-amber-800 dark:text-amber-400">
+                Isso impedirá novas reservas para este espaço até que ele seja reaberto.
+              </p>
+            )}
+          </div>
+          <DialogFooter className="grid grid-cols-2 gap-2">
+            <DialogClose>
+              <Button variant="outline" className="w-full">Cancelar</Button>
+            </DialogClose>
+            <Button onClick={handleConfirmMaintenance} className="w-full">Confirmar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

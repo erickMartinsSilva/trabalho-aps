@@ -27,10 +27,10 @@ export const UsuarioService = {
     )
   },
 
-  atualizarUsuario: async (cpf?: string, senha?: string) => {
+  atualizarUsuario: async (cpfAntigo: string, cpfNovo?: string, senha?: string) => {
     return callSoapService<{ sucesso: boolean; mensagem: string }>(
       { endpointPath, namespace, operation: 'atualizarUsuario' },
-      { ...(cpf && { cpf }), ...(senha && { senha }) }
+      { cpfAntigo, ...(cpfNovo && { cpfNovo }), ...(senha && { senha }) }
     )
   },
 
@@ -55,7 +55,7 @@ export const UsuarioService = {
     ).then(res => {
       return {
         ...res,
-        cpf: String(res.cpf)
+        cpf: String(res.cpf).padStart(11, '0')
       }
     })
   },
@@ -69,7 +69,7 @@ export const UsuarioService = {
       const arr = Array.isArray(res.usuarios) ? res.usuarios : [res.usuarios]
       return arr.map(u => ({
         ...u,
-        cpf: String(u.cpf)
+        cpf: String(u.cpf).padStart(11, '0')
       })) as UsuarioInfo[]
     })
   }

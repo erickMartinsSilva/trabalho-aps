@@ -45,9 +45,16 @@ export async function callSoapService<TResponse>(
 
     if (!response.ok) {
       const errorText = await response.text()
-      const errorMsg = `Requisição SOAP falhou com status ${response.status}: ${errorText}`
+      let errorMsg = `Requisição SOAP falhou com status ${response.status}: ${errorText}`
+      if (errorText.includes('fk_usuario') || errorText.includes('violates foreign key constraint "fk_usuario"')) {
+        errorMsg = 'Usuário não encontrado'
+      } else if (errorText.includes('fk_espaco') || errorText.includes('violates foreign key constraint "fk_espaco"')) {
+        errorMsg = 'Não é possível remover este espaço pois existem reservas ativas para ele.'
+      }
       toast.error(errorMsg)
-      throw new Error(errorMsg)
+      const error = new Error(errorMsg) as any
+      error.alreadyToasted = true
+      throw error
     }
 
     const xmlResponse = await response.text()
@@ -63,22 +70,30 @@ export async function callSoapService<TResponse>(
     if (!body) {
       const errorMsg = 'Resposta SOAP inválida: missing Envelope/Body'
       toast.error(errorMsg)
-      throw new Error(errorMsg)
+      const error = new Error(errorMsg) as any
+      error.alreadyToasted = true
+      throw error
     }
 
     if (body.Fault) {
-      const errorMsg = `Erro na API: ${body.Fault.faultstring || 'Erro desconhecido'}`
+      const faultString = String(body.Fault.faultstring || '')
+      let errorMsg = `Erro na API: ${faultString || 'Erro desconhecido'}`
+      if (faultString.includes('fk_usuario') || faultString.includes('violates foreign key constraint "fk_usuario"')) {
+        errorMsg = 'Usuário não encontrado'
+      } else if (faultString.includes('fk_espaco') || faultString.includes('violates foreign key constraint "fk_espaco"')) {
+        errorMsg = 'Não é possível remover este espaço pois existem reservas ativas para ele.'
+      }
       toast.error(errorMsg)
-      throw new Error(errorMsg)
+      const error = new Error(errorMsg) as any
+      error.alreadyToasted = true
+      throw error
     }
 
     // The response wrapper is typically the operation name + "Response"
     const responseWrapper = body[`${options.operation}Response`]
     return responseWrapper as TResponse
   } catch (err: any) {
-    if (!err.message?.startsWith('Requisição SOAP falhou') && 
-        !err.message?.startsWith('Resposta SOAP inválida') && 
-        !err.message?.startsWith('Erro na API')) {
+    if (!err.alreadyToasted) {
       toast.error(`Erro de conexão com o servidor: ${err.message}`)
     }
     throw err

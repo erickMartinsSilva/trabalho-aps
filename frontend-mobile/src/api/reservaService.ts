@@ -64,7 +64,7 @@ export const ReservaService = {
       if (res.reserva) {
         res.reserva.id = Number(res.reserva.id)
         res.reserva.espacoId = Number(res.reserva.espacoId)
-        res.reserva.cpfUsuario = String(res.reserva.cpfUsuario)
+        res.reserva.cpfUsuario = String(res.reserva.cpfUsuario).padStart(11, '0')
         res.reserva.dataHoraInicio = res.reserva.dataHoraInicio?.replace(' ', 'T')
         res.reserva.dataHoraTermino = res.reserva.dataHoraTermino?.replace(' ', 'T')
         res.reserva.status = mapReservaStatus(res.reserva.status)
@@ -84,7 +84,7 @@ export const ReservaService = {
         ...r,
         id: Number(r.id),
         espacoId: Number(r.espacoId),
-        cpfUsuario: String(r.cpfUsuario),
+        cpfUsuario: String(r.cpfUsuario).padStart(11, '0'),
         dataHoraInicio: r.dataHoraInicio?.replace(' ', 'T'),
         dataHoraTermino: r.dataHoraTermino?.replace(' ', 'T'),
         status: mapReservaStatus(r.status)

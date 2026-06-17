@@ -34,13 +34,28 @@ export default function AdminUsersPage() {
 
   const handleConfirmEdit = async () => {
     if(!userToEdit) return
+    const cpfChanged = editData.cpf !== userToEdit.cpf
+    const passwordChanged = editData.senha.trim().length > 0
+
+    if (!cpfChanged && !passwordChanged) {
+      toast.error("Nenhuma alteração informada.")
+      return
+    }
+
     try {
-      // The API doesn't allow changing CPF, and we don't have Nome.
-      // So Edit would only realistically be 'alterarSenha'.
-      await UsuarioService.atualizarUsuario(editData.cpf || undefined, editData.senha || undefined)
-      toast.success(`Usuário atualizado com sucesso!`)
-      setUserToEdit(null)
-      fetchUsers()
+      const res = await UsuarioService.atualizarUsuario(
+        userToEdit.cpf,
+        cpfChanged ? editData.cpf : undefined,
+        passwordChanged ? editData.senha : undefined
+      )
+      if (res.sucesso) {
+        toast.success(`Usuário atualizado com sucesso!`)
+        setUserToEdit(null)
+        setEditData({ cpf: '', senha: '' })
+        fetchUsers()
+      } else {
+        toast.error(`Erro ao atualizar: ${res.mensagem}`)
+      }
     } catch(e: any) { console.error(e) }
   }
 
@@ -107,7 +122,7 @@ export default function AdminUsersPage() {
       </Dialog>
 
       {/* Edit Dialog */}
-      <Dialog open={!!userToEdit} onOpenChange={(open) => !open && setUserToEdit(null)}>
+      <Dialog open={!!userToEdit} onOpenChange={(open) => { if (!open) { setUserToEdit(null); setEditData({ cpf: '', senha: '' }); } }}>
         <DialogContent className="w-[90vw] max-w-[350px] rounded-lg">
           <DialogHeader>
             <DialogTitle>Editar Usuário</DialogTitle>
@@ -115,14 +130,14 @@ export default function AdminUsersPage() {
           {userToEdit && (
             <div className="flex flex-col gap-3 py-4">
               <InputLabel label="CPF" value={editData.cpf} onChange={(e) => setEditData({...editData, cpf: e.target.value})} />
-              <InputLabel label="Nova Senha" type="password" value={editData.senha} onChange={(e) => setEditData({...editData, senha: e.target.value})} />
+              <InputLabel label="Nova Senha" type="password" placeholder="Insira a nova senha" value={editData.senha} onChange={(e) => setEditData({...editData, senha: e.target.value})} />
             </div>
           )}
           <DialogFooter className="grid grid-cols-2 gap-2">
             <DialogClose>
               <Button variant="outline" className="w-full">Cancelar</Button>
             </DialogClose>
-            <Button onClick={handleConfirmEdit} className="w-full">Salvar</Button>
+            <Button onClick={handleConfirmEdit} className="w-full" disabled={!userToEdit || (editData.cpf === userToEdit.cpf && !editData.senha.trim())}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -71,7 +71,7 @@ export function BookingCard({
     try {
       const res = await ReservaService.cancelarReserva(id)
       if (res.sucesso) {
-        toast.success(`Reserva número ${id} cancelada com sucesso!`)
+        toast.success(`Reserva cancelada com sucesso!`)
         setCancelBookingButtonPressed(false)
         onCancelled?.()
       } else {
