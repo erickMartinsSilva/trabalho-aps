@@ -3,26 +3,26 @@ import { Card, CardContent } from '@/components/ui/card'
 import { SpaceCard } from '@/components/SpaceCard'
 import { BookingCard } from '@/components/BookingCard'
 import { IconLogout, IconPlus, IconCalendarEvent } from '@tabler/icons-react'
-import { ReservaStatus } from '@/models'
+import { BookingStatus } from '@/models'
 import { useNavigate } from 'react-router'
 import { useState, useEffect } from 'react'
-import { EspacoService, type EspacoInfo } from '@/api/espacoService'
-import { ReservaService, type ReservaInfo } from '@/api/reservaService'
+import { SpaceService, type SpaceInfo } from '@/api/spaceService'
+import { BookingService, type BookingInfo } from '@/api/bookingService'
 import { clearSession } from '@/utils'
 
 export default function HomePage() {
   const navigate = useNavigate()
 
-  const [espacos, setEspacos] = useState<EspacoInfo[]>([])
-  const [nextBooking, setNextBooking] = useState<ReservaInfo | null>(null)
+  const [spaces, setSpaces] = useState<SpaceInfo[]>([])
+  const [nextBooking, setNextBooking] = useState<BookingInfo | null>(null)
 
   const fetchNextBooking = () => {
     const cpf = localStorage.getItem('cpf')
     if (cpf) {
-      ReservaService.listarReservas().then(res => {
-        const userReservas = res.filter(r => r.cpfUsuario === cpf && r.status === ReservaStatus.CONFIRMADA)
-        if (userReservas.length > 0) {
-          const next = userReservas.sort((a, b) => new Date(a.dataHoraInicio).getTime() - new Date(b.dataHoraInicio).getTime())[0]
+      BookingService.listBookings().then(res => {
+        const userBookings = res.filter(booking => booking.cpfUsuario === cpf && booking.status === BookingStatus.CONFIRMADA)
+        if (userBookings.length > 0) {
+          const next = userBookings.sort((a, b) => new Date(a.dataHoraInicio).getTime() - new Date(b.dataHoraInicio).getTime())[0]
           setNextBooking(next)
         } else {
           setNextBooking(null)
@@ -32,7 +32,7 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    EspacoService.listarEspacos().then(setEspacos).catch(console.error)
+    SpaceService.listSpaces().then(setSpaces).catch(console.error)
     fetchNextBooking()
   }, [])
 
@@ -50,7 +50,6 @@ export default function HomePage() {
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden space-y-6 pb-6">
-        {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-3">
           <Card className="rounded-md cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => navigate('/spaces')}>
             <CardContent className="p-4 flex flex-col items-center justify-center text-center gap-2">
@@ -66,7 +65,6 @@ export default function HomePage() {
           </Card>
         </div>
 
-        {/* Next Booking Section */}
         <section aria-labelledby="next-booking-heading">
           <div className="flex items-center justify-between mb-3">
             <h2 id="next-booking-heading" className="text-[17px] font-medium">Sua próxima reserva</h2>
@@ -90,12 +88,11 @@ export default function HomePage() {
           )}
         </section>
 
-        {/* Featured Spaces */}
         <section aria-labelledby="spaces-heading" className='flex-1 flex flex-col overflow-hidden'>
           <h2 id="spaces-heading" className="text-[17px] font-medium mb-3">Espaços em destaque</h2>
           <div className="space-y-3 overflow-y-auto">
-            {espacos.slice(0, 3).map((s) => (
-              <SpaceCard key={s.id} {...s} />
+            {spaces.slice(0, 3).map((space) => (
+              <SpaceCard key={space.id} {...space} />
             ))}
             <Button variant="outline" className="w-full mt-2" onClick={() => navigate('/spaces')}>
               Ver todos os espaços

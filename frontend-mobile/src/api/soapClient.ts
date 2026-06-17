@@ -1,6 +1,32 @@
 import { XMLParser, XMLBuilder } from 'fast-xml-parser'
 import { toast } from 'sonner'
 
+function getFriendlyErrorMessage(rawMessage: string): string | null {
+  const mappings = [
+    {
+      patterns: ['fk_usuario', 'violates foreign key constraint "fk_usuario"'],
+      message: 'Usuário não encontrado'
+    },
+    {
+      patterns: ['referenced from table "reserva"', 'fk_espaco" on table "reserva"'],
+      message: 'Não é possível remover este espaço pois existem reservas ativas para ele.'
+    },
+    {
+      patterns: ['is not present in table "espaco"', 'fk_espaco'],
+      message: 'Espaço não encontrado.'
+    },
+    {
+      patterns: ['usuario_pkey', 'duplicate key value violates unique constraint'],
+      message: 'Usuário (CPF) já cadastrado.'
+    }
+  ]
+
+  const matched = mappings.find(m => 
+    m.patterns.some(p => rawMessage.includes(p))
+  )
+  return matched ? matched.message : null
+}
+
 export interface SoapClientOptions {
   endpointPath: string
   namespace: string
@@ -37,8 +63,6 @@ export async function callSoapService<TResponse>(
       method: 'POST',
       headers: {
         'Content-Type': 'text/xml;charset=UTF-8',
-        // Optional: some servers require SOAPAction
-        // 'SOAPAction': '' 
       },
       body: xmlRequest,
     })
@@ -46,10 +70,9 @@ export async function callSoapService<TResponse>(
     if (!response.ok) {
       const errorText = await response.text()
       let errorMsg = `Requisição SOAP falhou com status ${response.status}: ${errorText}`
-      if (errorText.includes('fk_usuario') || errorText.includes('violates foreign key constraint "fk_usuario"')) {
-        errorMsg = 'Usuário não encontrado'
-      } else if (errorText.includes('fk_espaco') || errorText.includes('violates foreign key constraint "fk_espaco"')) {
-        errorMsg = 'Não é possível remover este espaço pois existem reservas ativas para ele.'
+      const friendly = getFriendlyErrorMessage(errorText)
+      if (friendly) {
+        errorMsg = friendly
       }
       toast.error(errorMsg)
       const error = new Error(errorMsg) as any
@@ -61,7 +84,7 @@ export async function callSoapService<TResponse>(
 
     const parser = new XMLParser({
       ignoreAttributes: false,
-      removeNSPrefix: true, // This makes it much easier to access properties
+      removeNSPrefix: true,
     })
 
     const parsed = parser.parse(xmlResponse)
@@ -78,10 +101,9 @@ export async function callSoapService<TResponse>(
     if (body.Fault) {
       const faultString = String(body.Fault.faultstring || '')
       let errorMsg = `Erro na API: ${faultString || 'Erro desconhecido'}`
-      if (faultString.includes('fk_usuario') || faultString.includes('violates foreign key constraint "fk_usuario"')) {
-        errorMsg = 'Usuário não encontrado'
-      } else if (faultString.includes('fk_espaco') || faultString.includes('violates foreign key constraint "fk_espaco"')) {
-        errorMsg = 'Não é possível remover este espaço pois existem reservas ativas para ele.'
+      const friendly = getFriendlyErrorMessage(faultString)
+      if (friendly) {
+        errorMsg = friendly
       }
       toast.error(errorMsg)
       const error = new Error(errorMsg) as any
@@ -89,7 +111,6 @@ export async function callSoapService<TResponse>(
       throw error
     }
 
-    // The response wrapper is typically the operation name + "Response"
     const responseWrapper = body[`${options.operation}Response`]
     return responseWrapper as TResponse
   } catch (err: any) {

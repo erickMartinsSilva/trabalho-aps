@@ -1,6 +1,6 @@
 import { callSoapService } from './soapClient'
 
-export interface DisponibilidadeInfo {
+export interface AvailabilityInfo {
   espacoId: number
   nomeEspaco: string
   dataHoraInicio: string
@@ -11,9 +11,9 @@ export interface DisponibilidadeInfo {
 const namespace = 'http://www.aps.com/api/disponibilidade'
 const endpointPath = '/disponibilidade'
 
-export const DisponibilidadeService = {
-  consultarDisponibilidade: async (espacoId: number, dataHoraInicio: string, dataHoraTermino: string) => {
-    return callSoapService<{ disponibilidades?: DisponibilidadeInfo | DisponibilidadeInfo[] }>(
+export const AvailabilityService = {
+  checkAvailability: async (espacoId: number, dataHoraInicio: string, dataHoraTermino: string) => {
+    return callSoapService<{ disponibilidades?: AvailabilityInfo | AvailabilityInfo[] }>(
       { endpointPath, namespace, operation: 'consultarDisponibilidade' },
       { espacoId, dataHoraInicio, dataHoraTermino }
     ).then(res => {

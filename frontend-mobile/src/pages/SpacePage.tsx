@@ -1,8 +1,8 @@
 import { StatusBadge } from "@/components/StatusBadge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { EspacoService, type EspacoInfo } from "@/api/espacoService"
-import { ReservaService } from "@/api/reservaService"
+import { SpaceService, type SpaceInfo } from "@/api/spaceService"
+import { BookingService } from "@/api/bookingService"
 import { ChevronDownIcon, UsersIcon } from "lucide-react"
 import { useNavigate, useParams } from "react-router"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -11,34 +11,34 @@ import { Label } from "@/components/ui/label"
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import InputLabel from "@/components/InputLabel"
-import { EspacoStatus } from "@/models"
+import { SpaceStatus } from "@/models"
 import { isTimeInPast } from "@/utils"
 import { toast } from 'sonner'
 
 interface SpaceFormData {
-  data: Date | undefined
-  horaInicio: string
-  horaFim: string
+  date: Date | undefined
+  startTime: string
+  endTime: string
 }
 
 export default function SpacePage() {
   const [formData, setFormData] = useState<SpaceFormData>({
-    data: undefined,
-    horaInicio: "",
-    horaFim: ""
+    date: undefined,
+    startTime: "",
+    endTime: ""
   })
-  const [errors, setErrors] = useState<{data: string, horaInicio: string, horaFim: string}>({
-    data: "",
-    horaInicio: "",
-    horaFim: ""
+  const [errors, setErrors] = useState<{date: string, startTime: string, endTime: string}>({
+    date: "",
+    startTime: "",
+    endTime: ""
   })
   const navigate = useNavigate()
   const { id } = useParams()
-  const [space, setSpace] = useState<EspacoInfo | null>(null)
+  const [space, setSpace] = useState<SpaceInfo | null>(null)
 
   useEffect(() => {
     if (id) {
-      EspacoService.buscarEspaco(Number(id))
+      SpaceService.getSpace(Number(id))
         .then(res => setSpace(res.espaco))
         .catch(err => console.error(err))
     }
@@ -51,12 +51,12 @@ export default function SpacePage() {
       return
     }
 
-    const [hInicio, mInicio] = formData.horaInicio.split(':')
-    const [hFim, mFim] = formData.horaFim.split(':')
-    const start = new Date(formData.data!)
-    start.setHours(Number(hInicio), Number(mInicio), 0)
-    const end = new Date(formData.data!)
-    end.setHours(Number(hFim), Number(mFim), 0)
+    const [startHour, startMin] = formData.startTime.split(':')
+    const [endHour, endMin] = formData.endTime.split(':')
+    const start = new Date(formData.date!)
+    start.setHours(Number(startHour), Number(startMin), 0)
+    const end = new Date(formData.date!)
+    end.setHours(Number(endHour), Number(endMin), 0)
 
     const cpf = localStorage.getItem('cpf')
     if (!cpf) {
@@ -65,7 +65,7 @@ export default function SpacePage() {
     }
 
     try {
-      const res = await ReservaService.reservarEspaco(
+      const res = await BookingService.bookSpace(
         cpf,
         Number(id),
         start.toISOString(),
@@ -86,16 +86,16 @@ export default function SpacePage() {
 
   const validateFormSubmission = (formData: SpaceFormData) => {
     const newErrors = {
-      data: "",
-      horaInicio: "",
-      horaFim: ""
+      date: "",
+      startTime: "",
+      endTime: ""
     }
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    const dateInPast = formData.data ? today.getTime() > formData.data.getTime() : false
+    const dateInPast = formData.date ? today.getTime() > formData.date.getTime() : false
     if(dateInPast) {
-      newErrors.data = "Data da reserva não pode estar no passado"
+      newErrors.date = "Data da reserva não pode estar no passado"
       return {
         valid: false,
         formErrors: newErrors
@@ -103,30 +103,30 @@ export default function SpacePage() {
     }
 
     let hourErrorMessage = ""
-    const startHourAfterEndHour = formData.horaFim < formData.horaInicio
+    const startHourAfterEndHour = formData.endTime < formData.startTime
     if(startHourAfterEndHour) {
       hourErrorMessage = "Hora de início não pode estar depois da hora de fim"
-      newErrors.horaInicio = hourErrorMessage
+      newErrors.startTime = hourErrorMessage
     }
-    const horaInicioInPast = formData.data ? isTimeInPast(formData.data, formData.horaInicio) : false
-    const horaFimInPast = formData.data ? isTimeInPast(formData.data, formData.horaFim) : false
-    if(horaInicioInPast) {
+    const startTimeInPast = formData.date ? isTimeInPast(formData.date, formData.startTime) : false
+    const endTimeInPast = formData.date ? isTimeInPast(formData.date, formData.endTime) : false
+    if(startTimeInPast) {
       hourErrorMessage = "Horário não pode estar no passado"
-      newErrors.horaInicio = hourErrorMessage
+      newErrors.startTime = hourErrorMessage
     }
-    if(horaFimInPast) {
+    if(endTimeInPast) {
       hourErrorMessage = "Horário não pode estar no passado"
-      newErrors.horaFim = hourErrorMessage
+      newErrors.endTime = hourErrorMessage
     }
 
     return {
-      valid: newErrors.data === "" && newErrors.horaInicio === "" && newErrors.horaFim === "",
+      valid: newErrors.date === "" && newErrors.startTime === "" && newErrors.endTime === "",
       formErrors: newErrors
     }
   }
   
-  const spaceInMaintenance = space?.status === EspacoStatus.MANUTENCAO
-  const formSubmittable = (!!formData.data && !!formData.horaInicio && !!formData.horaFim) && !spaceInMaintenance
+  const spaceInMaintenance = space?.status === SpaceStatus.MANUTENCAO
+  const formSubmittable = (!!formData.date && !!formData.startTime && !!formData.endTime) && !spaceInMaintenance
   
   if(!space) {
     return (
@@ -169,19 +169,19 @@ export default function SpacePage() {
                   <Button
                     disabled={spaceInMaintenance}
                     variant="outline"
-                    className={`w-full justify-between text-left font-normal data-[empty=true]:text-muted-foreground ${errors.data && "border-red-500 text-red-500"}`}
+                    className={`w-full justify-between text-left font-normal data-[empty=true]:text-muted-foreground ${errors.date && "border-red-500 text-red-500"}`}
                   >
-                    {formData.data ? format(formData.data, "P") : <span>--/--/--</span>}
+                    {formData.date ? format(formData.date, "P") : <span>--/--/--</span>}
                     <ChevronDownIcon />
                   </Button>
-                  {errors.data && <p className="mt-2 text-left text-xs font-bold text-red-500">{errors.data}</p>}
+                  {errors.date && <p className="mt-2 text-left text-xs font-bold text-red-500">{errors.date}</p>}
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
-                    selected={formData.data}
+                    selected={formData.date}
                     onSelect={(s) => {
-                      setFormData({...formData, data: s})
-                      setErrors({...errors, data: ""})
+                      setFormData({...formData, date: s})
+                      setErrors({...errors, date: ""})
                     }}
                     mode="single"
                   />
@@ -194,10 +194,10 @@ export default function SpacePage() {
                 label="Hora de Início"
                 type="time"
                 step="60"
-                value={formData.horaInicio}
-                error={errors.horaInicio}
-                onChange={(e) => setFormData({ ...formData, horaInicio: e.target.value })}
-                onInput={() => setErrors({ ...errors, horaInicio: "" })}
+                value={formData.startTime}
+                error={errors.startTime}
+                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                onInput={() => setErrors({ ...errors, startTime: "" })}
               />
             </div>
             <div className="flex flex-col gap-2 w-full">
@@ -205,10 +205,10 @@ export default function SpacePage() {
                 disabled={spaceInMaintenance}
                 label="Hora de Fim"
                 type="time"
-                value={formData.horaFim}
-                error={errors.horaFim}
-                onChange={(e) => setFormData({ ...formData, horaFim: e.target.value })}
-                onInput={() => setErrors({ ...errors, horaFim: "" })}
+                value={formData.endTime}
+                error={errors.endTime}
+                onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                onInput={() => setErrors({ ...errors, endTime: "" })}
               />
             </div>
           </div>

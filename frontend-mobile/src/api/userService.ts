@@ -1,17 +1,17 @@
 import { callSoapService } from './soapClient'
 
-export interface UsuarioInfo {
+export interface UserInfo {
   cpf: string
 }
 
 const namespace = 'http://www.aps.com/api/usuario'
 const endpointPath = '/usuario'
 
-export const UsuarioService = {
-  login: async (cpf: string, senha: string) => {
+export const UserService = {
+  login: async (cpf: string, password: string) => {
     return callSoapService<{ sucesso: boolean; mensagem: string; isAdmin?: any }>(
       { endpointPath, namespace, operation: 'login' },
-      { cpf, senha }
+      { cpf, senha: password }
     ).then(res => {
       return {
         ...res,
@@ -20,35 +20,35 @@ export const UsuarioService = {
     })
   },
 
-  cadastrarUsuario: async (cpf: string, senha: string) => {
+  registerUser: async (cpf: string, password: string) => {
     return callSoapService<{ sucesso: boolean; mensagem: string }>(
       { endpointPath, namespace, operation: 'cadastrarUsuario' },
-      { cpf, senha }
+      { cpf, senha: password }
     )
   },
 
-  atualizarUsuario: async (cpfAntigo: string, cpfNovo?: string, senha?: string) => {
+  updateUser: async (cpfOld: string, cpfNew?: string, password?: string) => {
     return callSoapService<{ sucesso: boolean; mensagem: string }>(
       { endpointPath, namespace, operation: 'atualizarUsuario' },
-      { cpfAntigo, ...(cpfNovo && { cpfNovo }), ...(senha && { senha }) }
+      { cpfAntigo: cpfOld, ...(cpfNew && { cpfNovo: cpfNew }), ...(password && { senha: password }) }
     )
   },
 
-  alterarSenha: async (cpf: string, senhaAtual: string, senhaNova: string) => {
+  changePassword: async (cpf: string, currentPassword: string, newPassword: string) => {
     return callSoapService<{ sucesso: boolean; mensagem: string }>(
       { endpointPath, namespace, operation: 'alterarSenha' },
-      { cpf, senhaAtual, senhaNova }
+      { cpf, senhaAtual: currentPassword, senhaNova: newPassword }
     )
   },
 
-  deletarUsuario: async (cpf: string) => {
+  deleteUser: async (cpf: string) => {
     return callSoapService<{ sucesso: boolean; mensagem: string }>(
       { endpointPath, namespace, operation: 'deletarUsuario' },
       { cpf }
     )
   },
 
-  buscarUsuario: async (cpf: string) => {
+  getUser: async (cpf: string) => {
     return callSoapService<{ cpf: string }>(
       { endpointPath, namespace, operation: 'buscarUsuario' },
       { cpf }
@@ -60,8 +60,8 @@ export const UsuarioService = {
     })
   },
 
-  listarUsuarios: async () => {
-    return callSoapService<{ usuarios?: UsuarioInfo | UsuarioInfo[] }>(
+  listUsers: async () => {
+    return callSoapService<{ usuarios?: UserInfo | UserInfo[] }>(
       { endpointPath, namespace, operation: 'listarUsuarios' },
       {}
     ).then(res => {
@@ -70,7 +70,7 @@ export const UsuarioService = {
       return arr.map(u => ({
         ...u,
         cpf: String(u.cpf).padStart(11, '0')
-      })) as UsuarioInfo[]
+      })) as UserInfo[]
     })
   }
 }

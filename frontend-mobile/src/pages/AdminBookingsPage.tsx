@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button'
 import { IconEdit, IconTrash, IconArrowLeft, IconPlus } from '@tabler/icons-react'
 import { useNavigate } from 'react-router'
 import { useState, useEffect } from 'react'
-import { ReservaService, type ReservaInfo } from '@/api/reservaService'
-import { EspacoService, type EspacoInfo } from '@/api/espacoService'
-import { RelatorioService, type RelatorioInfo } from '@/api/relatorioService'
+import { BookingService, type BookingInfo } from '@/api/bookingService'
+import { SpaceService, type SpaceInfo } from '@/api/spaceService'
+import { ReportService, type ReportInfo } from '@/api/reportService'
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
@@ -18,78 +18,84 @@ import { toast } from 'sonner'
 export default function AdminBookingsPage() {
   const navigate = useNavigate()
 
-  const [reservas, setReservas] = useState<ReservaInfo[]>([])
-  const [espacos, setEspacos] = useState<EspacoInfo[]>([])
+  const [bookings, setBookings] = useState<BookingInfo[]>([])
+  const [spaces, setSpaces] = useState<SpaceInfo[]>([])
 
   const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [bookingToEdit, setBookingToEdit] = useState<ReservaInfo | null>(null)
-  const [bookingToDelete, setBookingToDelete] = useState<ReservaInfo | null>(null)
+  const [bookingToEdit, setBookingToEdit] = useState<BookingInfo | null>(null)
+  const [bookingToDelete, setBookingToDelete] = useState<BookingInfo | null>(null)
   const [isReportOpen, setIsReportOpen] = useState(false)
 
-  const [createData, setCreateData] = useState({ espacoId: '', cpf: '', data: '', horaInicio: '', horaTermino: '' })
-  const [editData, setEditData] = useState({ data: '', horaInicio: '', horaTermino: '' })
-  const [reportData, setReportData] = useState({ dataHoraInicio: '', dataHoraTermino: '' })
-  const [reportResults, setReportResults] = useState<RelatorioInfo[] | null>(null)
+  const [createData, setCreateData] = useState({ espacoId: '', cpf: '', date: '', startTime: '', endTime: '' })
+  const [editData, setEditData] = useState({ date: '', startTime: '', endTime: '' })
+  const [reportData, setReportData] = useState({ startDate: '', endDate: '' })
+  const [reportResults, setReportResults] = useState<ReportInfo[] | null>(null)
 
-  const fetchReservas = () => ReservaService.listarReservas().then(setReservas).catch(console.error)
+  const fetchBookings = () => BookingService.listBookings().then(setBookings).catch(console.error)
 
   useEffect(() => {
-    fetchReservas()
-    EspacoService.listarEspacos().then(setEspacos).catch(console.error)
+    fetchBookings()
+    SpaceService.listSpaces().then(setSpaces).catch(console.error)
   }, [])
 
   const handleConfirmCreate = async () => {
-    if (!createData.cpf || !createData.espacoId || !createData.data || !createData.horaInicio || !createData.horaTermino) {
+    if (!createData.cpf || !createData.espacoId || !createData.date || !createData.startTime || !createData.endTime) {
       toast.error("Por favor, preencha todos os campos da reserva.")
       return
     }
     try {
-      const inicioISO = new Date(`${createData.data}T${createData.horaInicio}`).toISOString()
-      const terminoISO = new Date(`${createData.data}T${createData.horaTermino}`).toISOString()
-      await ReservaService.reservarEspaco(createData.cpf, Number(createData.espacoId), inicioISO, terminoISO)
+      const startISO = new Date(`${createData.date}T${createData.startTime}`).toISOString()
+      const endISO = new Date(`${createData.date}T${createData.endTime}`).toISOString()
+      await BookingService.bookSpace(createData.cpf, Number(createData.espacoId), startISO, endISO)
       toast.success("Reserva adicionada com sucesso!")
       setIsCreateOpen(false)
-      setCreateData({ espacoId: '', cpf: '', data: '', horaInicio: '', horaTermino: '' })
-      fetchReservas()
+      setCreateData({ espacoId: '', cpf: '', date: '', startTime: '', endTime: '' })
+      fetchBookings()
     } catch (e: any) { console.error(e) }
   }
 
   const handleConfirmEdit = async () => {
     if(!bookingToEdit) return
-    if (!editData.data || !editData.horaInicio || !editData.horaTermino) {
+    if (!editData.date || !editData.startTime || !editData.endTime) {
       toast.error("Por favor, preencha a data e os horários de início e término.")
       return
     }
     try {
-      const inicioISO = new Date(`${editData.data}T${editData.horaInicio}`).toISOString()
-      const terminoISO = new Date(`${editData.data}T${editData.horaTermino}`).toISOString()
-      await ReservaService.atualizarReserva(bookingToEdit.id, inicioISO, terminoISO)
+      const startISO = new Date(`${editData.date}T${editData.startTime}`).toISOString()
+      const endISO = new Date(`${editData.date}T${editData.endTime}`).toISOString()
+      await BookingService.updateBooking(bookingToEdit.id, startISO, endISO)
       toast.success(`Reserva #${bookingToEdit.id} atualizada com sucesso!`)
       setBookingToEdit(null)
-      fetchReservas()
+      fetchBookings()
     } catch (e: any) { console.error(e) }
   }
 
   const handleConfirmDelete = async () => {
     if(!bookingToDelete) return
     try {
-      await ReservaService.deletarReserva(bookingToDelete.id)
+      await BookingService.deleteBooking(bookingToDelete.id)
       toast.success(`Reserva #${bookingToDelete.id} excluída!`)
       setBookingToDelete(null)
-      fetchReservas()
+      fetchBookings()
     } catch (e: any) { console.error(e) }
   }
 
   const handleEmitReport = async () => {
     try {
-      const report = await RelatorioService.gerarRelatorio(new Date(reportData.dataHoraInicio).toISOString(), new Date(reportData.dataHoraTermino).toISOString())
+      if (!reportData.startDate || !reportData.endDate) {
+        toast.error("Por favor, selecione as datas de início e término.")
+        return
+      }
+      const start = new Date(`${reportData.startDate}T00:00:00`)
+      const end = new Date(`${reportData.endDate}T23:59:59`)
+      const report = await ReportService.generateReport(start.toISOString(), end.toISOString())
       console.log("Relatório: ", report)
       setReportResults(report)
       setIsReportOpen(false)
     } catch (e: any) { console.error(e) }
   }
 
-  const sortedReservas = [...reservas].sort((a, b) => {
+  const sortedBookings = [...bookings].sort((a, b) => {
     const getWeight = (status: string) => {
       if (status === 'Confirmada') return 1
       if (status === 'Concluída') return 2
@@ -123,29 +129,29 @@ export default function AdminBookingsPage() {
         </div>
       </div>
       <div className="flex-1 overflow-y-auto space-y-3 pb-4 mt-2">
-        {sortedReservas.map((r) => {
-          const espaco = espacos.find(e => e.id === r.espacoId)
+        {sortedBookings.map((booking) => {
+          const space = spaces.find(s => s.id === booking.espacoId)
           return (
-            <Card key={r.id}>
+            <Card key={booking.id}>
               <CardContent className="p-4 flex justify-between items-start gap-2">
                 <div className="flex-1">
-                  <p className="font-medium">Reserva #{r.id}</p>
-                  <p className="text-sm text-muted-foreground">{espaco?.nome}</p>
-                  <p className="text-sm text-muted-foreground mb-1">{format(new Date(r.dataHoraInicio), 'dd/MM/yyyy HH:mm')} - {format(new Date(r.dataHoraTermino), 'HH:mm')}</p>
-                  <StatusBadge status={r.status} />
+                  <p className="font-medium">Reserva #{booking.id}</p>
+                  <p className="text-sm text-muted-foreground">{space?.nome}</p>
+                  <p className="text-sm text-muted-foreground mb-1">{format(new Date(booking.dataHoraInicio), 'dd/MM/yyyy HH:mm')} - {format(new Date(booking.dataHoraTermino), 'HH:mm')}</p>
+                  <StatusBadge status={booking.status} />
                 </div>
                 <div className="flex flex-col gap-2">
                   <Button variant="outline" size="sm" className="gap-2 w-full" onClick={() => {
-                    setBookingToEdit(r)
+                    setBookingToEdit(booking)
                     setEditData({
-                      data: format(new Date(r.dataHoraInicio), 'yyyy-MM-dd'),
-                      horaInicio: format(new Date(r.dataHoraInicio), 'HH:mm'),
-                      horaTermino: format(new Date(r.dataHoraTermino), 'HH:mm')
+                      date: format(new Date(booking.dataHoraInicio), 'yyyy-MM-dd'),
+                      startTime: format(new Date(booking.dataHoraInicio), 'HH:mm'),
+                      endTime: format(new Date(booking.dataHoraTermino), 'HH:mm')
                     })
                   }}>
                     <IconEdit size={16}/> Editar
                   </Button>
-                  <Button variant="destructive" size="sm" className="gap-2 w-full" onClick={() => setBookingToDelete(r)}>
+                  <Button variant="destructive" size="sm" className="gap-2 w-full" onClick={() => setBookingToDelete(booking)}>
                     <IconTrash size={16}/> Excluir
                   </Button>
                 </div>
@@ -155,8 +161,7 @@ export default function AdminBookingsPage() {
         })}
       </div>
 
-      {/* Create Dialog */}
-      <Dialog open={isCreateOpen} onOpenChange={(open) => { setIsCreateOpen(open); if (!open) setCreateData({ espacoId: '', cpf: '', data: '', horaInicio: '', horaTermino: '' }); }}>
+      <Dialog open={isCreateOpen} onOpenChange={(open) => { setIsCreateOpen(open); if (!open) setCreateData({ espacoId: '', cpf: '', date: '', startTime: '', endTime: '' }); }}>
         <DialogContent className="w-[90vw] max-w-[350px] rounded-lg">
           <DialogHeader>
             <DialogTitle>Adicionar Reserva</DialogTitle>
@@ -165,46 +170,45 @@ export default function AdminBookingsPage() {
             <InputLabel label="CPF Usuário" type="text" placeholder="CPF" value={createData.cpf} onChange={(e) => setCreateData({...createData, cpf: e.target.value})} />
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="space-select">Espaço</Label>
-              <Select id="space-select" value={createData.espacoId} onValueChange={(v) => setCreateData({ ...createData, espacoId: v })}>
+              <Select id="space-select" value={createData.espacoId} onValueChange={(v) => setCreateData({ ...createData, espacoId: v || '' })}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecione um espaço">
-                    {espacos.find(e => String(e.id) === createData.espacoId)?.nome}
+                    {spaces.find(s => String(s.id) === createData.espacoId)?.nome}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    {espacos.map((e) => (
-                      <SelectItem key={e.id} value={String(e.id)}>{e.nome}</SelectItem>
+                    {spaces.map((s) => (
+                      <SelectItem key={s.id} value={String(s.id)}>{s.nome}</SelectItem>
                     ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
-            <InputLabel label="Data" type="date" value={createData.data} onChange={(e) => setCreateData({...createData, data: e.target.value})} />
-            <InputLabel label="Hora de Início" type="time" value={createData.horaInicio} onChange={(e) => setCreateData({...createData, horaInicio: e.target.value})} />
-            <InputLabel label="Hora de Término" type="time" value={createData.horaTermino} onChange={(e) => setCreateData({...createData, horaTermino: e.target.value})} />
+            <InputLabel label="Data" type="date" value={createData.date} onChange={(e) => setCreateData({...createData, date: e.target.value})} />
+            <InputLabel label="Hora de Início" type="time" value={createData.startTime} onChange={(e) => setCreateData({...createData, startTime: e.target.value})} />
+            <InputLabel label="Hora de Término" type="time" value={createData.endTime} onChange={(e) => setCreateData({...createData, endTime: e.target.value})} />
           </div>
           <DialogFooter className="grid grid-cols-2 gap-2">
             <DialogClose>
               <Button variant="outline" className="w-full">Cancelar</Button>
             </DialogClose>
-            <Button onClick={handleConfirmCreate} className="w-full" disabled={!createData.cpf || !createData.espacoId || !createData.data || !createData.horaInicio || !createData.horaTermino}>Adicionar</Button>
+            <Button onClick={handleConfirmCreate} className="w-full" disabled={!createData.cpf || !createData.espacoId || !createData.date || !createData.startTime || !createData.endTime}>Adicionar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
-      <Dialog open={!!bookingToEdit} onOpenChange={(open) => { if (!open) { setBookingToEdit(null); setEditData({ data: '', horaInicio: '', horaTermino: '' }); } }}>
+      <Dialog open={!!bookingToEdit} onOpenChange={(open) => { if (!open) { setBookingToEdit(null); setEditData({ date: '', startTime: '', endTime: '' }); } }}>
         <DialogContent className="w-[90vw] max-w-[350px] rounded-lg">
           <DialogHeader>
             <DialogTitle>Editar Reserva</DialogTitle>
           </DialogHeader>
           {bookingToEdit && (
             <div className="flex flex-col gap-3 py-4">
-              <InputLabel label="Espaço" type="text" value={espacos.find(e => e.id === bookingToEdit.espacoId)?.nome || `Espaço #${bookingToEdit.espacoId}`} disabled />
-              <InputLabel label="Data" type="date" value={editData.data} onChange={(e) => setEditData({...editData, data: e.target.value})} />
-              <InputLabel label="Hora de Início" type="time" value={editData.horaInicio} onChange={(e) => setEditData({...editData, horaInicio: e.target.value})} />
-              <InputLabel label="Hora de Término" type="time" value={editData.horaTermino} onChange={(e) => setEditData({...editData, horaTermino: e.target.value})} />
+              <InputLabel label="Espaço" type="text" value={spaces.find(s => s.id === bookingToEdit.espacoId)?.nome || `Espaço #${bookingToEdit.espacoId}`} disabled />
+              <InputLabel label="Data" type="date" value={editData.date} onChange={(e) => setEditData({...editData, date: e.target.value})} />
+              <InputLabel label="Hora de Início" type="time" value={editData.startTime} onChange={(e) => setEditData({...editData, startTime: e.target.value})} />
+              <InputLabel label="Hora de Término" type="time" value={editData.endTime} onChange={(e) => setEditData({...editData, endTime: e.target.value})} />
               <div className="flex flex-col gap-2">
                 <Label>Status</Label>
                 <Select defaultValue={bookingToEdit.status}>
@@ -219,18 +223,17 @@ export default function AdminBookingsPage() {
             <DialogClose>
               <Button variant="outline" className="w-full">Cancelar</Button>
             </DialogClose>
-            <Button onClick={handleConfirmEdit} className="w-full" disabled={!editData.data || !editData.horaInicio || !editData.horaTermino}>Salvar</Button>
+            <Button onClick={handleConfirmEdit} className="w-full" disabled={!editData.date || !editData.startTime || !editData.endTime}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Dialog */}
       <Dialog open={!!bookingToDelete} onOpenChange={(open) => !open && setBookingToDelete(null)}>
         <DialogContent className="w-[90vw] max-w-[350px] rounded-lg">
           <DialogHeader>
             <DialogTitle>Excluir Reserva</DialogTitle>
           </DialogHeader>
-          <p>Tem certeza que deseja excluir a reserva <strong>#{bookingToDelete?.id}</strong>?</p>
+          <p>Tem certeza que deseja excluir la reserva <strong>#{bookingToDelete?.id}</strong>?</p>
           <p className="font-bold text-red-800">Esta ação não pode ser desfeita.</p>
           <DialogFooter className="grid grid-cols-2 gap-2 mt-4">
             <DialogClose>
@@ -241,15 +244,14 @@ export default function AdminBookingsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Report Dialog */}
       <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
         <DialogContent className="w-[90vw] max-w-[350px] rounded-lg">
           <DialogHeader>
             <DialogTitle>Emitir Relatório de Reservas</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-3 py-4">
-            <InputLabel label="Data de Início" type="datetime-local" value={reportData.dataHoraInicio} onChange={(e) => setReportData({...reportData, dataHoraInicio: e.target.value})} />
-            <InputLabel label="Data de Término" type="datetime-local" value={reportData.dataHoraTermino} onChange={(e) => setReportData({...reportData, dataHoraTermino: e.target.value})} />
+            <InputLabel label="Data de Início" type="date" value={reportData.startDate} onChange={(e) => setReportData({...reportData, startDate: e.target.value})} />
+            <InputLabel label="Data de Término" type="date" value={reportData.endDate} onChange={(e) => setReportData({...reportData, endDate: e.target.value})} />
           </div>
           <DialogFooter className="grid grid-cols-2 gap-2">
             <DialogClose>
@@ -260,7 +262,6 @@ export default function AdminBookingsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Report Results Dialog */}
       <Dialog open={reportResults !== null} onOpenChange={(open) => !open && setReportResults(null)}>
         <DialogContent className="w-[90vw] max-w-[450px] max-h-[80vh] flex flex-col rounded-lg">
           <DialogHeader>

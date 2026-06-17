@@ -1,10 +1,10 @@
 import InputGroup from "@/components/InputLabel";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { cpfValido, clearSession } from "@/utils";
+import { isValidCpf, clearSession } from "@/utils";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { UsuarioService } from "@/api/usuarioService";
+import { UserService } from "@/api/userService";
 import { toast } from 'sonner';
 
 interface LoginPageFormData {
@@ -38,7 +38,7 @@ export default function LoginPage() {
 
     setIsLoading(true)
     try {
-      const res = await UsuarioService.login(formData.cpf, formData.password)
+      const res = await UserService.login(formData.cpf, formData.password)
       if (res.sucesso) {
         localStorage.setItem('role', res.isAdmin ? 'admin' : 'user')
         localStorage.setItem('cpf', formData.cpf)
@@ -56,7 +56,7 @@ export default function LoginPage() {
   const validateFormSubmission = (form: LoginPageFormData) => {
     const newErrors = {cpf: "", password: ""}
 
-    if(!cpfValido(form.cpf)) {
+    if(!isValidCpf(form.cpf)) {
       newErrors.cpf = "CPF inválido"
     }
 

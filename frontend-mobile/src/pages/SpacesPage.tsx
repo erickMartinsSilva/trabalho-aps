@@ -1,9 +1,9 @@
 import { SpaceCard } from '@/components/SpaceCard'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue, SelectLabel } from '@/components/ui/select'
-import { EspacoStatus, type EspacoStatusValue } from '@/models'
+import { SpaceStatus, type SpaceStatusValue } from '@/models'
 import { useMemo, useState, useRef, useEffect } from 'react'
-import { EspacoService, type EspacoInfo } from '@/api/espacoService'
+import { SpaceService, type SpaceInfo } from '@/api/spaceService'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,7 @@ interface SpaceFilters {
 
 export default function SpacesPage() {
   const [searchValue, setSearchValue] = useState<string>("")
-  const [spaces, setSpaces] = useState<EspacoInfo[]>([])
+  const [spaces, setSpaces] = useState<SpaceInfo[]>([])
   const [selectedFilters, setSelectedFilters] = useState<SpaceFilters>({
     status: "Todos",
     capacity: "Todos"
@@ -24,7 +24,7 @@ export default function SpacesPage() {
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    EspacoService.listarEspacos().then(res => setSpaces(res)).catch(err => console.error(err))
+    SpaceService.listSpaces().then(res => setSpaces(res)).catch(err => console.error(err))
   }, [])
 
   const clearSearchValue = () => {
@@ -50,17 +50,17 @@ export default function SpacesPage() {
     const status = selectedFilters.status
     const capacity = selectedFilters.capacity
 
-    return spaces.filter((s) => {
-      const searchValueMatchesName = s.nome.toLowerCase().includes(searchValue.toLowerCase())
-      const searchValueMatchesCode = s.id === Number(searchValue)
+    return spaces.filter((space) => {
+      const searchValueMatchesName = space.nome.toLowerCase().includes(searchValue.toLowerCase())
+      const searchValueMatchesCode = space.id === Number(searchValue)
 
       const searchValueMatches = searchValueMatchesName || searchValueMatchesCode
 
       const selectedFilterMatchesStatus = status !== "Todos"
-        ? s.status === status as EspacoStatusValue
+        ? space.status === status as SpaceStatusValue
         : true
       const selectedFilterMatchesCapacity = capacity !== "Todos"
-        ? s.capacidadeMaxima === Number(capacity)
+        ? space.capacidadeMaxima === Number(capacity)
         : true
 
       const filtersMatch = selectedFilterMatchesStatus && selectedFilterMatchesCapacity
@@ -71,7 +71,7 @@ export default function SpacesPage() {
 
   const noSearchResults = filteredSpaces.length === 0
 
-  const allSpaceCapacitiesSet = new Set([...spaces].sort((a, b) => a.capacidadeMaxima - b.capacidadeMaxima).map((s) => s.capacidadeMaxima))
+  const allSpaceCapacitiesSet = new Set([...spaces].sort((a, b) => a.capacidadeMaxima - b.capacidadeMaxima).map((space) => space.capacidadeMaxima))
 
   return (
     <div className="flex-1 flex flex-col px-4 pt-6 space-y-4 overflow-hidden">
@@ -99,7 +99,7 @@ export default function SpacesPage() {
               <SelectGroup>
                 <SelectLabel>Status</SelectLabel>
                 <SelectItem value={"Todos"}>Todos</SelectItem>
-                {Object.entries(EspacoStatus).map(([key, value]) => (
+                {Object.entries(SpaceStatus).map(([key, value]) => (
                   <SelectItem key={key} value={value}>{value}</SelectItem>
                 ))}
               </SelectGroup>
@@ -135,8 +135,8 @@ export default function SpacesPage() {
             </Button>
           </div>
         }
-        {filteredSpaces.map((s) => (
-          <SpaceCard key={s.id} {...s}/>
+        {filteredSpaces.map((space) => (
+          <SpaceCard key={space.id} {...space}/>
         ))}
       </div>
     </div>

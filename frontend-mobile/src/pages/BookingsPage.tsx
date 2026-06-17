@@ -1,28 +1,28 @@
 import { BookingCard } from '@/components/BookingCard'
 import { Button } from '@/components/ui/button'
-import { ReservaService, type ReservaInfo } from '@/api/reservaService'
+import { BookingService, type BookingInfo } from '@/api/bookingService'
 import { useNavigate } from 'react-router'
 import { useState, useEffect } from 'react'
 
 export default function BookingsPage() {
   const navigate = useNavigate()
-  const [reservas, setReservas] = useState<ReservaInfo[]>([])
+  const [bookings, setBookings] = useState<BookingInfo[]>([])
 
-  const fetchReservas = () => {
+  const fetchBookings = () => {
     const cpf = localStorage.getItem('cpf')
     if (cpf) {
-      ReservaService.listarReservas().then(res => {
-        const userReservas = res.filter(r => r.cpfUsuario === cpf)
-        setReservas(userReservas)
+      BookingService.listBookings().then(res => {
+        const userBookings = res.filter(booking => booking.cpfUsuario === cpf)
+        setBookings(userBookings)
       }).catch(console.error)
     }
   }
 
   useEffect(() => {
-    fetchReservas()
+    fetchBookings()
   }, [])
 
-  const sortedReservas = [...reservas].sort((a, b) => {
+  const sortedBookings = [...bookings].sort((a, b) => {
     const getWeight = (status: string) => {
       if (status === 'Confirmada') return 1
       if (status === 'Concluída') return 2
@@ -42,7 +42,7 @@ export default function BookingsPage() {
       <div className="flex flex-1 flex-col h-full px-4 pt-6 space-y-4">
         <h1 className="text-[22px] font-medium">Minhas Reservas</h1>
         <div className="space-y-3 overflow-y-auto flex-1 flex flex-col">
-          {sortedReservas.length === 0 &&
+          {sortedBookings.length === 0 &&
             <div className='m-auto flex flex-col gap-2 justify-center items-center'>
               <p>Você ainda não possui reservas.</p>
               <Button size='lg' onClick={() => navigate('/spaces')}>
@@ -50,13 +50,13 @@ export default function BookingsPage() {
               </Button>
             </div>
           }
-          {sortedReservas.map((b) => (
+          {sortedBookings.map((booking) => (
             <BookingCard
-              key={b.id}
-              {...b}
-              dataHoraInicio={new Date(b.dataHoraInicio)}
-              dataHoraTermino={new Date(b.dataHoraTermino)}
-              onCancelled={fetchReservas}
+              key={booking.id}
+              {...booking}
+              dataHoraInicio={new Date(booking.dataHoraInicio)}
+              dataHoraTermino={new Date(booking.dataHoraTermino)}
+              onCancelled={fetchBookings}
             />
           ))}
         </div>

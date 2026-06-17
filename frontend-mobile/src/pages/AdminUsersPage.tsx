@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { IconEdit, IconTrash, IconPlus, IconArrowLeft } from '@tabler/icons-react'
 import { useNavigate } from 'react-router'
 import { useState, useEffect } from 'react'
-import { UsuarioService, type UsuarioInfo } from '@/api/usuarioService'
+import { UserService, type UserInfo } from '@/api/userService'
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import InputLabel from '@/components/InputLabel'
 import { toast } from 'sonner'
@@ -11,21 +11,21 @@ import { toast } from 'sonner'
 export default function AdminUsersPage() {
   const navigate = useNavigate()
   
-  const [users, setUsers] = useState<UsuarioInfo[]>([])
+  const [users, setUsers] = useState<UserInfo[]>([])
   const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [userToEdit, setUserToEdit] = useState<UsuarioInfo | null>(null)
-  const [userToDelete, setUserToDelete] = useState<UsuarioInfo | null>(null)
+  const [userToEdit, setUserToEdit] = useState<UserInfo | null>(null)
+  const [userToDelete, setUserToDelete] = useState<UserInfo | null>(null)
 
-  const [createData, setCreateData] = useState({ cpf: '', senha: '' })
-  const [editData, setEditData] = useState({ cpf: '', senha: '' })
+  const [createData, setCreateData] = useState({ cpf: '', password: '' })
+  const [editData, setEditData] = useState({ cpf: '', password: '' })
 
-  const fetchUsers = () => UsuarioService.listarUsuarios().then(setUsers).catch(console.error)
+  const fetchUsers = () => UserService.listUsers().then(setUsers).catch(console.error)
 
   useEffect(() => { fetchUsers() }, [])
 
   const handleConfirmCreate = async () => {
     try {
-      await UsuarioService.cadastrarUsuario(createData.cpf, createData.senha)
+      await UserService.registerUser(createData.cpf, createData.password)
       toast.success("Usuário adicionado com sucesso!")
       setIsCreateOpen(false)
       fetchUsers()
@@ -35,7 +35,7 @@ export default function AdminUsersPage() {
   const handleConfirmEdit = async () => {
     if(!userToEdit) return
     const cpfChanged = editData.cpf !== userToEdit.cpf
-    const passwordChanged = editData.senha.trim().length > 0
+    const passwordChanged = editData.password.trim().length > 0
 
     if (!cpfChanged && !passwordChanged) {
       toast.error("Nenhuma alteração informada.")
@@ -43,15 +43,15 @@ export default function AdminUsersPage() {
     }
 
     try {
-      const res = await UsuarioService.atualizarUsuario(
+      const res = await UserService.updateUser(
         userToEdit.cpf,
         cpfChanged ? editData.cpf : undefined,
-        passwordChanged ? editData.senha : undefined
+        passwordChanged ? editData.password : undefined
       )
       if (res.sucesso) {
         toast.success(`Usuário atualizado com sucesso!`)
         setUserToEdit(null)
-        setEditData({ cpf: '', senha: '' })
+        setEditData({ cpf: '', password: '' })
         fetchUsers()
       } else {
         toast.error(`Erro ao atualizar: ${res.mensagem}`)
@@ -62,7 +62,7 @@ export default function AdminUsersPage() {
   const handleConfirmDelete = async () => {
     if(!userToDelete) return
     try {
-      await UsuarioService.deletarUsuario(userToDelete.cpf)
+      await UserService.deleteUser(userToDelete.cpf)
       toast.success(`Usuário excluído!`)
       setUserToDelete(null)
       fetchUsers()
@@ -83,17 +83,17 @@ export default function AdminUsersPage() {
         </Button>
       </div>
       <div className="flex-1 overflow-y-auto space-y-3 pb-4 mt-2">
-        {users.map((u) => (
-          <Card key={u.cpf}>
+        {users.map((user) => (
+          <Card key={user.cpf}>
             <CardContent className="p-4 flex justify-between items-center gap-2">
               <div className="flex-1">
-                <p className="font-medium">CPF: {u.cpf}</p>
+                <p className="font-medium">CPF: {user.cpf}</p>
               </div>
               <div className="flex flex-col gap-2">
-                <Button variant="outline" size="sm" className="gap-2 w-full" onClick={() => { setUserToEdit(u); setEditData({ cpf: u.cpf, senha: '' }) }}>
+                <Button variant="outline" size="sm" className="gap-2 w-full" onClick={() => { setUserToEdit(user); setEditData({ cpf: user.cpf, password: '' }) }}>
                   <IconEdit size={16} /> Editar
                 </Button>
-                <Button variant="destructive" size="sm" className="gap-2 w-full" onClick={() => setUserToDelete(u)}>
+                <Button variant="destructive" size="sm" className="gap-2 w-full" onClick={() => setUserToDelete(user)}>
                   <IconTrash size={16} /> Excluir
                 </Button>
               </div>
@@ -102,7 +102,6 @@ export default function AdminUsersPage() {
         ))}
       </div>
 
-      {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="w-[90vw] max-w-[350px] rounded-lg">
           <DialogHeader>
@@ -110,7 +109,7 @@ export default function AdminUsersPage() {
           </DialogHeader>
           <div className="flex flex-col gap-3 py-4">
             <InputLabel label="CPF" placeholder="Apenas números" value={createData.cpf} onChange={(e) => setCreateData({...createData, cpf: e.target.value})} />
-            <InputLabel label="Senha" type="password" placeholder="Senha" value={createData.senha} onChange={(e) => setCreateData({...createData, senha: e.target.value})} />
+            <InputLabel label="Senha" type="password" placeholder="Senha" value={createData.password} onChange={(e) => setCreateData({...createData, password: e.target.value})} />
           </div>
           <DialogFooter className="grid grid-cols-2 gap-2">
             <DialogClose>
@@ -121,8 +120,7 @@ export default function AdminUsersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
-      <Dialog open={!!userToEdit} onOpenChange={(open) => { if (!open) { setUserToEdit(null); setEditData({ cpf: '', senha: '' }); } }}>
+      <Dialog open={!!userToEdit} onOpenChange={(open) => { if (!open) { setUserToEdit(null); setEditData({ cpf: '', password: '' }); } }}>
         <DialogContent className="w-[90vw] max-w-[350px] rounded-lg">
           <DialogHeader>
             <DialogTitle>Editar Usuário</DialogTitle>
@@ -130,19 +128,18 @@ export default function AdminUsersPage() {
           {userToEdit && (
             <div className="flex flex-col gap-3 py-4">
               <InputLabel label="CPF" value={editData.cpf} onChange={(e) => setEditData({...editData, cpf: e.target.value})} />
-              <InputLabel label="Nova Senha" type="password" placeholder="Insira a nova senha" value={editData.senha} onChange={(e) => setEditData({...editData, senha: e.target.value})} />
+              <InputLabel label="Nova Senha" type="password" placeholder="Insira a nova senha" value={editData.password} onChange={(e) => setEditData({...editData, password: e.target.value})} />
             </div>
           )}
           <DialogFooter className="grid grid-cols-2 gap-2">
             <DialogClose>
               <Button variant="outline" className="w-full">Cancelar</Button>
             </DialogClose>
-            <Button onClick={handleConfirmEdit} className="w-full" disabled={!userToEdit || (editData.cpf === userToEdit.cpf && !editData.senha.trim())}>Salvar</Button>
+            <Button onClick={handleConfirmEdit} className="w-full" disabled={!userToEdit || (editData.cpf === userToEdit.cpf && !editData.password.trim())}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Dialog */}
       <Dialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
         <DialogContent className="w-[90vw] max-w-[350px] rounded-lg">
           <DialogHeader>

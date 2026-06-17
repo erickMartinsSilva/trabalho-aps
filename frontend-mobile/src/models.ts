@@ -1,44 +1,38 @@
-export interface Usuario {
+export interface User {
   id: number
   nome: string
   cpf: string
 }
 
-export const EspacoStatus = {
+export const SpaceStatus = {
   DISPONIVEL: "Disponível",
   OCUPADO: "Ocupado",
   MANUTENCAO: "Em manutenção",
 } as const
 
-export type EspacoStatusValue = typeof EspacoStatus[keyof typeof EspacoStatus]
+export type SpaceStatusValue = typeof SpaceStatus[keyof typeof SpaceStatus]
 
-export interface Espaco {
+export interface Space {
   id: number
   nome: string
   descricao?: string
   capacidadeMaxima: number
-  status: EspacoStatusValue
+  status: SpaceStatusValue
 }
 
-export interface Reserva {
+export interface Booking {
   id: number
   dataHoraInicio: Date
   dataHoraTermino: Date
   espacoId: number
   usuarioId?: number
-  status: ReservaStatusValue
+  status: BookingStatusValue
 }
 
-export const ReservaStatus = {
+export const BookingStatus = {
   CONFIRMADA: "Confirmada",
   CONCLUIDA: "Concluída",
   CANCELADA: "Cancelada",
 } as const
 
-export type ReservaStatusValue = typeof ReservaStatus[keyof typeof ReservaStatus]
-
-
-
-
-
-
+export type BookingStatusValue = typeof BookingStatus[keyof typeof BookingStatus]

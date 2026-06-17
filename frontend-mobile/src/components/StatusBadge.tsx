@@ -5,9 +5,9 @@ import {
   IconInfoCircle,
 } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
-import type { EspacoStatusValue, ReservaStatusValue } from '@/models'
+import type { SpaceStatusValue, BookingStatusValue } from '@/models'
 
-export type BadgeStatus = EspacoStatusValue | ReservaStatusValue
+export type BadgeStatus = SpaceStatusValue | BookingStatusValue
 
 interface StatusBadgeProps {
   status: BadgeStatus
@@ -18,11 +18,9 @@ const config: Record<
   BadgeStatus,
   { label: string; Icon: React.ElementType; bg: string; text: string }
 > = {
-  // Espaço
   'Disponível': { label: 'Disponível', Icon: IconCircleCheck, bg: 'bg-[#E1F5EE]', text: 'text-[#085041]' },
   'Ocupado': { label: 'Ocupado', Icon: IconCircleX, bg: 'bg-[#FCEBEB]', text: 'text-[#791F1F]' },
   'Em manutenção': { label: 'Em manutenção', Icon: IconClock, bg: 'bg-[#FAEEDA]', text: 'text-[#633806]' },
-  // Reserva
   'Confirmada': { label: 'Confirmada', Icon: IconInfoCircle, bg: 'bg-[#E8F2FA]', text: 'text-[#0D3A5C]' },
   'Concluída': { label: 'Concluída', Icon: IconCircleCheck, bg: 'bg-[#E1F5EE]', text: 'text-[#085041]' },
   'Cancelada': { label: 'Cancelada', Icon: IconCircleX, bg: 'bg-[#FCEBEB]', text: 'text-[#791F1F]' },

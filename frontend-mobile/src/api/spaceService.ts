@@ -1,53 +1,53 @@
-import { EspacoStatus, type EspacoStatusValue } from '@/models'
+import { SpaceStatus, type SpaceStatusValue } from '@/models'
 import { callSoapService } from './soapClient'
 
-export interface EspacoInfo {
+export interface SpaceInfo {
   id: number
   nome: string
   descricao?: string
   capacidadeMaxima: number
-  status: EspacoStatusValue
+  status: SpaceStatusValue
 }
 
 const namespace = 'http://www.aps.com/api/espaco'
 const endpointPath = '/espaco'
 
-export function mapEspacoStatus(status: string): EspacoStatusValue {
+export function mapSpaceStatus(status: string): SpaceStatusValue {
   switch (status) {
     case 'DISPONIVEL':
-      return EspacoStatus.DISPONIVEL
+      return SpaceStatus.DISPONIVEL
     case 'OCUPADO':
-      return EspacoStatus.OCUPADO
+      return SpaceStatus.OCUPADO
     case 'FECHADO_PARA_MANUTENCAO':
-      return EspacoStatus.MANUTENCAO
+      return SpaceStatus.MANUTENCAO
     default:
-      return EspacoStatus.DISPONIVEL
+      return SpaceStatus.DISPONIVEL
   }
 }
 
-export const EspacoService = {
-  cadastrarEspaco: async (cpf: string, nome: string, descricao: string, capacidadeMaxima: number) => {
+export const SpaceService = {
+  registerSpace: async (cpf: string, nome: string, descricao: string, capacidadeMaxima: number) => {
     return callSoapService<{ sucesso: boolean; mensagem: string }>(
       { endpointPath, namespace, operation: 'cadastrarEspaco' },
       { cpf, nome, descricao, capacidadeMaxima }
     )
   },
 
-  atualizarEspaco: async (cpf: string, id: number, nome?: string, descricao?: string, capacidadeMaxima?: number) => {
+  updateSpace: async (cpf: string, id: number, nome?: string, descricao?: string, capacidadeMaxima?: number) => {
     return callSoapService<{ sucesso: boolean; mensagem: string }>(
       { endpointPath, namespace, operation: 'atualizarEspaco' },
       { cpf, id, ...(nome && { nome }), ...(descricao && { descricao }), ...(capacidadeMaxima && { capacidadeMaxima }) }
     )
   },
 
-  deletarEspaco: async (cpf: string, id: number) => {
+  deleteSpace: async (cpf: string, id: number) => {
     return callSoapService<{ sucesso: boolean; mensagem: string }>(
       { endpointPath, namespace, operation: 'deletarEspaco' },
       { cpf, id }
     )
   },
 
-  buscarEspaco: async (id: number) => {
+  getSpace: async (id: number) => {
     return callSoapService<{ espaco: any }>(
       { endpointPath, namespace, operation: 'buscarEspaco' },
       { id }
@@ -55,13 +55,13 @@ export const EspacoService = {
       if (res.espaco) {
         res.espaco.id = Number(res.espaco.id)
         res.espaco.capacidadeMaxima = Number(res.espaco.capacidadeMaxima)
-        res.espaco.status = mapEspacoStatus(res.espaco.status)
+        res.espaco.status = mapSpaceStatus(res.espaco.status)
       }
-      return res as { espaco: EspacoInfo }
+      return res as { espaco: SpaceInfo }
     })
   },
 
-  listarEspacos: async () => {
+  listSpaces: async () => {
     return callSoapService<{ espacos?: any | any[] }>(
       { endpointPath, namespace, operation: 'listarEspacos' },
       {}
@@ -72,23 +72,22 @@ export const EspacoService = {
         ...e,
         id: Number(e.id),
         capacidadeMaxima: Number(e.capacidadeMaxima),
-        status: mapEspacoStatus(e.status)
-      })) as EspacoInfo[]
+        status: mapSpaceStatus(e.status)
+      })) as SpaceInfo[]
     })
   },
 
-  fecharEspaco: async (cpf: string, id: number) => {
+  closeSpace: async (cpf: string, id: number) => {
     return callSoapService<{ sucesso: boolean; mensagem: string }>(
       { endpointPath, namespace, operation: 'fecharEspaco' },
       { cpf, id }
     )
   },
 
-  reabrirEspaco: async (cpf: string, id: number) => {
+  reopenSpace: async (cpf: string, id: number) => {
     return callSoapService<{ sucesso: boolean; mensagem: string }>(
       { endpointPath, namespace, operation: 'reabrirEspaco' },
       { cpf, id }
     )
   }
 }
-

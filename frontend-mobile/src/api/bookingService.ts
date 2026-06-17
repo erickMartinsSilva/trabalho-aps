@@ -1,62 +1,62 @@
-import { ReservaStatus, type ReservaStatusValue } from '@/models'
+import { BookingStatus, type BookingStatusValue } from '@/models'
 import { callSoapService } from './soapClient'
 
-export interface ReservaInfo {
+export interface BookingInfo {
   id: number
   espacoId: number
   nomeEspaco: string
   cpfUsuario: string
   dataHoraInicio: string
   dataHoraTermino: string
-  status: ReservaStatusValue
+  status: BookingStatusValue
 }
 
 const namespace = 'http://www.aps.com/api/reserva'
 const endpointPath = '/reserva'
 
-export function mapReservaStatus(status: string): ReservaStatusValue {
+export function mapBookingStatus(status: string): BookingStatusValue {
   switch (status) {
     case 'CRIADA':
-      return ReservaStatus.CONFIRMADA
+      return BookingStatus.CONFIRMADA
     case 'CONCLUIDA':
-      return ReservaStatus.CONCLUIDA
+      return BookingStatus.CONCLUIDA
     case 'CANCELADA':
-      return ReservaStatus.CANCELADA
+      return BookingStatus.CANCELADA
     default:
-      return ReservaStatus.CONFIRMADA
+      return BookingStatus.CONFIRMADA
   }
 }
 
-export const ReservaService = {
-  reservarEspaco: async (cpf: string, espacoId: number, dataHoraInicio: string, dataHoraTermino: string) => {
+export const BookingService = {
+  bookSpace: async (cpf: string, espacoId: number, dataHoraInicio: string, dataHoraTermino: string) => {
     return callSoapService<{ sucesso: boolean; mensagem: string }>(
       { endpointPath, namespace, operation: 'reservarEspaco' },
       { cpf, espacoId, dataHoraInicio, dataHoraTermino }
     )
   },
 
-  atualizarReserva: async (id: number, dataHoraInicio?: string, dataHoraTermino?: string) => {
+  updateBooking: async (id: number, dataHoraInicio?: string, dataHoraTermino?: string) => {
     return callSoapService<{ sucesso: boolean; mensagem: string }>(
       { endpointPath, namespace, operation: 'atualizarReserva' },
       { id, ...(dataHoraInicio && { dataHoraInicio }), ...(dataHoraTermino && { dataHoraTermino }) }
     )
   },
 
-  deletarReserva: async (id: number) => {
+  deleteBooking: async (id: number) => {
     return callSoapService<{ sucesso: boolean; mensagem: string }>(
       { endpointPath, namespace, operation: 'deletarReserva' },
       { id }
     )
   },
 
-  cancelarReserva: async (id: number, motivo?: string) => {
+  cancelBooking: async (id: number, motivo?: string) => {
     return callSoapService<{ sucesso: boolean; mensagem: string }>(
       { endpointPath, namespace, operation: 'cancelarReserva' },
       { id, ...(motivo && { motivo }) }
     )
   },
 
-  buscarReserva: async (id: number) => {
+  getBooking: async (id: number) => {
     return callSoapService<{ reserva: any }>(
       { endpointPath, namespace, operation: 'buscarReserva' },
       { id }
@@ -67,13 +67,13 @@ export const ReservaService = {
         res.reserva.cpfUsuario = String(res.reserva.cpfUsuario).padStart(11, '0')
         res.reserva.dataHoraInicio = res.reserva.dataHoraInicio?.replace(' ', 'T')
         res.reserva.dataHoraTermino = res.reserva.dataHoraTermino?.replace(' ', 'T')
-        res.reserva.status = mapReservaStatus(res.reserva.status)
+        res.reserva.status = mapBookingStatus(res.reserva.status)
       }
-      return res as { reserva: ReservaInfo }
+      return res as { reserva: BookingInfo }
     })
   },
 
-  listarReservas: async () => {
+  listBookings: async () => {
     return callSoapService<{ reservas?: any | any[] }>(
       { endpointPath, namespace, operation: 'listarReservas' },
       {}
@@ -87,9 +87,8 @@ export const ReservaService = {
         cpfUsuario: String(r.cpfUsuario).padStart(11, '0'),
         dataHoraInicio: r.dataHoraInicio?.replace(' ', 'T'),
         dataHoraTermino: r.dataHoraTermino?.replace(' ', 'T'),
-        status: mapReservaStatus(r.status)
-      })) as ReservaInfo[]
+        status: mapBookingStatus(r.status)
+      })) as BookingInfo[]
     })
   }
 }
-

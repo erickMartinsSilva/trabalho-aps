@@ -7,16 +7,16 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { StatusBadge } from '@/components/StatusBadge'
-import { ReservaStatus, type ReservaStatusValue } from '@/models'
+import { BookingStatus, type BookingStatusValue } from '@/models'
 import { cn } from '@/lib/utils'
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle as DialogTitleUI, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { useState, useEffect } from 'react'
-import { EspacoService, type EspacoInfo } from '@/api/espacoService'
+import { SpaceService, type SpaceInfo } from '@/api/spaceService'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
 
-import { ReservaService } from '@/api/reservaService'
+import { BookingService } from '@/api/bookingService'
 
 export interface BookingCardProps {
   id: number
@@ -24,7 +24,7 @@ export interface BookingCardProps {
   dataHoraTermino: Date
   espacoNome?: string
   espacoId: number
-  status: ReservaStatusValue
+  status: BookingStatusValue
   onClick?: () => void
   className?: string
   onCancelled?: () => void
@@ -56,12 +56,12 @@ export function BookingCard({
     : status === 'Concluída' ? IconCalendarCheck
     : IconCalendar
 
-  const currentBookingCancellable = status === ReservaStatus.CONFIRMADA
-  const [currentBookingSpace, setCurrentBookingSpace] = useState<EspacoInfo | null>(null)
+  const currentBookingCancellable = status === BookingStatus.CONFIRMADA
+  const [currentBookingSpace, setCurrentBookingSpace] = useState<SpaceInfo | null>(null)
 
   useEffect(() => {
     if (espacoId) {
-      EspacoService.buscarEspaco(espacoId).then(res => {
+      SpaceService.getSpace(espacoId).then(res => {
         if (res.espaco) setCurrentBookingSpace(res.espaco)
       }).catch(console.error)
     }
@@ -69,7 +69,7 @@ export function BookingCard({
 
   const onConfirmCancelBooking = async () => {
     try {
-      const res = await ReservaService.cancelarReserva(id)
+      const res = await BookingService.cancelBooking(id)
       if (res.sucesso) {
         toast.success(`Reserva cancelada com sucesso!`)
         setCancelBookingButtonPressed(false)
