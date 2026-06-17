@@ -3,16 +3,33 @@ import { Card, CardContent } from '@/components/ui/card'
 import { SpaceCard } from '@/components/SpaceCard'
 import { BookingCard } from '@/components/BookingCard'
 import { IconLogout, IconPlus, IconCalendarEvent } from '@tabler/icons-react'
-import { ESPACOS, RESERVAS } from '@/data'
 import { ReservaStatus } from '@/models'
 import { useNavigate } from 'react-router'
+import { useState, useEffect } from 'react'
+import { EspacoService, type EspacoInfo } from '@/api/espacoService'
+import { ReservaService, type ReservaInfo } from '@/api/reservaService'
+import { clearSession } from '@/utils'
 
 export default function HomePage() {
   const navigate = useNavigate()
 
-  // Find the next confirmed booking
-  const nextBooking = RESERVAS.filter(r => r.status === ReservaStatus.CONFIRMADA)
-    .sort((a, b) => a.dataHoraInicio.getTime() - b.dataHoraInicio.getTime())[0]
+  const [espacos, setEspacos] = useState<EspacoInfo[]>([])
+  const [nextBooking, setNextBooking] = useState<ReservaInfo | null>(null)
+
+  useEffect(() => {
+    EspacoService.listarEspacos().then(setEspacos).catch(console.error)
+    
+    const cpf = localStorage.getItem('cpf')
+    if (cpf) {
+      ReservaService.listarReservas().then(res => {
+        const userReservas = res.filter(r => r.cpfUsuario === cpf && r.status === ReservaStatus.CONFIRMADA)
+        if (userReservas.length > 0) {
+          const next = userReservas.sort((a, b) => new Date(a.dataHoraInicio).getTime() - new Date(b.dataHoraInicio).getTime())[0]
+          setNextBooking(next)
+        }
+      }).catch(console.error)
+    }
+  }, [])
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden px-4 pt-6 space-y-6">
@@ -21,7 +38,7 @@ export default function HomePage() {
           <h1 className="text-[22px] font-medium text-foreground mt-0.5">Seja bem-vindo(a)!</h1>
         </div>
         <div className="flex gap-2">
-          <Button id="btn-logout" variant="ghost" size="icon" aria-label="Sair" onClick={() => { localStorage.removeItem('role'); navigate('/'); }} className="rounded-full min-h-[48px] min-w-[48px] text-destructive hover:bg-destructive/10">
+          <Button id="btn-logout" variant="ghost" size="icon" aria-label="Sair" onClick={() => { clearSession(); navigate('/'); }} className="rounded-full min-h-[48px] min-w-[48px] text-destructive hover:bg-destructive/10">
             <IconLogout size={22} aria-hidden="true" />
           </Button>
         </div>
@@ -51,7 +68,7 @@ export default function HomePage() {
           </div>
           {nextBooking ? (
             <div className="cursor-pointer">
-              <BookingCard {...nextBooking} />
+              <BookingCard {...nextBooking} dataHoraInicio={new Date(nextBooking.dataHoraInicio)} dataHoraTermino={new Date(nextBooking.dataHoraTermino)} />
             </div>
           ) : (
             <Card className="rounded-md border-dashed border-2">
@@ -67,7 +84,7 @@ export default function HomePage() {
         <section aria-labelledby="spaces-heading" className='flex-1 flex flex-col overflow-hidden'>
           <h2 id="spaces-heading" className="text-[17px] font-medium mb-3">Espaços em destaque</h2>
           <div className="space-y-3 overflow-y-auto">
-            {ESPACOS.slice(0, 3).map((s) => (
+            {espacos.slice(0, 3).map((s) => (
               <SpaceCard key={s.id} {...s} />
             ))}
             <Button variant="outline" className="w-full mt-2" onClick={() => navigate('/spaces')}>

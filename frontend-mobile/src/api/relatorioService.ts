@@ -1,4 +1,5 @@
 import { callSoapService } from './soapClient'
+import { mapReservaStatus } from './reservaService'
 
 export interface RelatorioInfo {
   id: number
@@ -15,12 +16,19 @@ const endpointPath = '/relatorio'
 
 export const RelatorioService = {
   gerarRelatorio: async (dataHoraInicio: string, dataHoraTermino: string) => {
-    return callSoapService<{ reservas?: RelatorioInfo | RelatorioInfo[] }>(
+    return callSoapService<{ reservas?: any | any[] }>(
       { endpointPath, namespace, operation: 'gerarRelatorio' },
       { dataHoraInicio, dataHoraTermino }
     ).then(res => {
       if (!res.reservas) return []
-      return Array.isArray(res.reservas) ? res.reservas : [res.reservas]
+      const arr = Array.isArray(res.reservas) ? res.reservas : [res.reservas]
+      return arr.map(r => ({
+        ...r,
+        id: Number(r.id),
+        espacoId: Number(r.espacoId),
+        status: mapReservaStatus(r.status)
+      })) as RelatorioInfo[]
     })
   }
 }
+

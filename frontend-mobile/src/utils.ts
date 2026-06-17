@@ -37,3 +37,7 @@ export function isTimeInPast(data: Date, time: string) {
   
   return nowMinutes > timeMinutes
 }
+
+export function clearSession() {
+  localStorage.clear()
+}

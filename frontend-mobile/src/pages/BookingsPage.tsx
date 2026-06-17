@@ -1,12 +1,24 @@
 import { BookingCard } from '@/components/BookingCard'
 import { Button } from '@/components/ui/button'
-import { RESERVAS } from '@/data'
+import { ReservaService, type ReservaInfo } from '@/api/reservaService'
 import { useNavigate } from 'react-router'
+import { useState, useEffect } from 'react'
 
 export default function BookingsPage() {
   const navigate = useNavigate()
+  const [reservas, setReservas] = useState<ReservaInfo[]>([])
 
-  const sortedReservas = RESERVAS.sort((a, b) => b.dataHoraInicio.getTime() - a.dataHoraInicio.getTime())
+  useEffect(() => {
+    const cpf = localStorage.getItem('cpf')
+    if (cpf) {
+      ReservaService.listarReservas().then(res => {
+        const userReservas = res.filter(r => r.cpfUsuario === cpf)
+        setReservas(userReservas)
+      }).catch(console.error)
+    }
+  }, [])
+
+  const sortedReservas = [...reservas].sort((a, b) => new Date(b.dataHoraInicio).getTime() - new Date(a.dataHoraInicio).getTime())
 
   return (
     <>
@@ -22,7 +34,7 @@ export default function BookingsPage() {
             </div>
           }
           {sortedReservas.map((b) => (
-            <BookingCard key={b.id} {...b} />
+            <BookingCard key={b.id} {...b} dataHoraInicio={new Date(b.dataHoraInicio)} dataHoraTermino={new Date(b.dataHoraTermino)} />
           ))}
         </div>
       </div>

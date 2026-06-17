@@ -11,8 +11,8 @@ import { ReservaStatus, type ReservaStatusValue } from '@/models'
 import { cn } from '@/lib/utils'
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle as DialogTitleUI, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { useState } from 'react'
-import { ESPACOS } from '@/data'
+import { useState, useEffect } from 'react'
+import { EspacoService, type EspacoInfo } from '@/api/espacoService'
 import { format } from 'date-fns'
 
 export interface BookingCardProps {
@@ -52,7 +52,15 @@ export function BookingCard({
     : IconCalendar
 
   const currentBookingCancellable = status === ReservaStatus.CONFIRMADA
-  const currentBookingSpace = ESPACOS.find((e) => e.id === espacoId)
+  const [currentBookingSpace, setCurrentBookingSpace] = useState<EspacoInfo | null>(null)
+
+  useEffect(() => {
+    if (espacoId) {
+      EspacoService.buscarEspaco(espacoId).then(res => {
+        if (res.espaco) setCurrentBookingSpace(res.espaco)
+      }).catch(console.error)
+    }
+  }, [espacoId])
 
   const onConfirmCancelBooking = () => {
     alert(`Reserva número ${id} cancelada com sucesso!`)

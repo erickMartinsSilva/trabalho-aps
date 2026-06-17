@@ -1,10 +1,9 @@
 import { SpaceCard } from '@/components/SpaceCard'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue, SelectLabel } from '@/components/ui/select'
 import { EspacoStatus, type EspacoStatusValue } from '@/models'
-import { ESPACOS } from '@/data'
-import { SelectLabel } from '@/components/ui/select'
-import { useMemo, useState, useRef } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
+import { EspacoService, type EspacoInfo } from '@/api/espacoService'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -16,12 +15,17 @@ interface SpaceFilters {
 
 export default function SpacesPage() {
   const [searchValue, setSearchValue] = useState<string>("")
+  const [spaces, setSpaces] = useState<EspacoInfo[]>([])
   const [selectedFilters, setSelectedFilters] = useState<SpaceFilters>({
     status: "Todos",
     capacity: "Todos"
   })
 
   const searchInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    EspacoService.listarEspacos().then(res => setSpaces(res)).catch(err => console.error(err))
+  }, [])
 
   const clearSearchValue = () => {
     setSearchValue("")
@@ -46,7 +50,7 @@ export default function SpacesPage() {
     const status = selectedFilters.status
     const capacity = selectedFilters.capacity
 
-    return ESPACOS.filter((s) => {
+    return spaces.filter((s) => {
       const searchValueMatchesName = s.nome.toLowerCase().includes(searchValue.toLowerCase())
       const searchValueMatchesCode = s.id === Number(searchValue)
 
@@ -63,11 +67,11 @@ export default function SpacesPage() {
 
       return searchValueMatches && filtersMatch
     })
-  }, [searchValue, selectedFilters])
+  }, [searchValue, selectedFilters, spaces])
 
   const noSearchResults = filteredSpaces.length === 0
 
-  const allSpaceCapacitiesSet = new Set(ESPACOS.sort((a, b) => a.capacidadeMaxima - b.capacidadeMaxima).map((s) => s.capacidadeMaxima))
+  const allSpaceCapacitiesSet = new Set([...spaces].sort((a, b) => a.capacidadeMaxima - b.capacidadeMaxima).map((s) => s.capacidadeMaxima))
 
   return (
     <div className="flex-1 flex flex-col px-4 pt-6 space-y-4 overflow-hidden">

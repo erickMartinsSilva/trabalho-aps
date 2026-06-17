@@ -18,16 +18,13 @@ export async function callSoapService<TResponse>(
     format: true,
   })
 
-  // Determine prefix based on the namespace URL, or use a generic 'tns'
-  const prefix = 'tns'
-
   const envelope = {
     'soapenv:Envelope': {
       '@_xmlns:soapenv': 'http://schemas.xmlsoap.org/soap/envelope/',
-      [`@_xmlns:${prefix}`]: options.namespace,
+      '@_xmlns': options.namespace,
       'soapenv:Header': {},
       'soapenv:Body': {
-        [`${prefix}:${options.operation}Request`]: requestPayload
+        [`${options.operation}Request`]: requestPayload
       }
     }
   }

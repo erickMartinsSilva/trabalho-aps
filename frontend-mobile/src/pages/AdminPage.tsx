@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { IconLogout, IconUsers, IconBuildingCommunity, IconCalendarEvent } from '@tabler/icons-react'
 import { useNavigate } from 'react-router'
+import { clearSession } from '@/utils'
 
 export default function AdminPage() {
   const navigate = useNavigate()
@@ -14,7 +15,7 @@ export default function AdminPage() {
           <p className="text-sm text-muted-foreground mt-1">Gerencie o sistema</p>
         </div>
         <div className="flex gap-2">
-          <Button id="btn-logout" variant="ghost" size="icon" aria-label="Sair" onClick={() => { localStorage.removeItem('role'); navigate('/'); }} className="rounded-full min-h-[48px] min-w-[48px] text-destructive hover:bg-destructive/10">
+          <Button id="btn-logout" variant="ghost" size="icon" aria-label="Sair" onClick={() => { clearSession(); navigate('/'); }} className="rounded-full min-h-[48px] min-w-[48px] text-destructive hover:bg-destructive/10">
             <IconLogout size={22} aria-hidden="true" />
           </Button>
         </div>

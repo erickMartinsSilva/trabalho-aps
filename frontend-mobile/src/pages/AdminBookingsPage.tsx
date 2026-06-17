@@ -2,36 +2,76 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { IconEdit, IconTrash, IconArrowLeft, IconPlus } from '@tabler/icons-react'
 import { useNavigate } from 'react-router'
-import { RESERVAS, ESPACOS } from '@/data'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { ReservaService, type ReservaInfo } from '@/api/reservaService'
+import { EspacoService, type EspacoInfo } from '@/api/espacoService'
+import { RelatorioService } from '@/api/relatorioService'
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import InputLabel from '@/components/InputLabel'
 import { StatusBadge } from '@/components/StatusBadge'
-import { type Reserva, ReservaStatus } from '@/models'
+
 import { format } from 'date-fns'
 
 export default function AdminBookingsPage() {
   const navigate = useNavigate()
 
+  const [reservas, setReservas] = useState<ReservaInfo[]>([])
+  const [espacos, setEspacos] = useState<EspacoInfo[]>([])
+
   const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [bookingToEdit, setBookingToEdit] = useState<Reserva | null>(null)
-  const [bookingToDelete, setBookingToDelete] = useState<Reserva | null>(null)
+  const [bookingToEdit, setBookingToEdit] = useState<ReservaInfo | null>(null)
+  const [bookingToDelete, setBookingToDelete] = useState<ReservaInfo | null>(null)
+  const [isReportOpen, setIsReportOpen] = useState(false)
 
-  const handleConfirmCreate = () => {
-    alert("Reserva adicionada com sucesso!")
-    setIsCreateOpen(false)
+  const [createData, setCreateData] = useState({ espacoId: '', cpf: '', dataHoraInicio: '', dataHoraTermino: '' })
+  const [editData, setEditData] = useState({ dataHoraInicio: '', dataHoraTermino: '' })
+  const [reportData, setReportData] = useState({ dataHoraInicio: '', dataHoraTermino: '' })
+
+  const fetchReservas = () => ReservaService.listarReservas().then(setReservas).catch(console.error)
+
+  useEffect(() => {
+    fetchReservas()
+    EspacoService.listarEspacos().then(setEspacos).catch(console.error)
+  }, [])
+
+  const handleConfirmCreate = async () => {
+    try {
+      await ReservaService.reservarEspaco(createData.cpf, Number(createData.espacoId), new Date(createData.dataHoraInicio).toISOString(), new Date(createData.dataHoraTermino).toISOString())
+      alert("Reserva adicionada com sucesso!")
+      setIsCreateOpen(false)
+      fetchReservas()
+    } catch (e: any) { alert("Erro: " + e.message) }
   }
 
-  const handleConfirmEdit = () => {
-    alert(`Reserva #${bookingToEdit?.id} atualizada com sucesso!`)
-    setBookingToEdit(null)
+  const handleConfirmEdit = async () => {
+    if(!bookingToEdit) return
+    try {
+      await ReservaService.atualizarReserva(bookingToEdit.id, editData.dataHoraInicio ? new Date(editData.dataHoraInicio).toISOString() : undefined, editData.dataHoraTermino ? new Date(editData.dataHoraTermino).toISOString() : undefined)
+      alert(`Reserva #${bookingToEdit.id} atualizada com sucesso!`)
+      setBookingToEdit(null)
+      fetchReservas()
+    } catch (e: any) { alert("Erro: " + e.message) }
   }
 
-  const handleConfirmDelete = () => {
-    alert(`Reserva #${bookingToDelete?.id} excluída!`)
-    setBookingToDelete(null)
+  const handleConfirmDelete = async () => {
+    if(!bookingToDelete) return
+    try {
+      await ReservaService.deletarReserva(bookingToDelete.id)
+      alert(`Reserva #${bookingToDelete.id} excluída!`)
+      setBookingToDelete(null)
+      fetchReservas()
+    } catch (e: any) { alert("Erro: " + e.message) }
+  }
+
+  const handleEmitReport = async () => {
+    try {
+      const report = await RelatorioService.gerarRelatorio(new Date(reportData.dataHoraInicio).toISOString(), new Date(reportData.dataHoraTermino).toISOString())
+      console.log("Relatório: ", report)
+      alert(`Relatório gerado com sucesso! Encontradas ${report.length} reservas. (Ver console para dados)`)
+      setIsReportOpen(false)
+    } catch (e: any) { alert("Erro ao gerar relatório: " + e.message) }
   }
 
   return (
@@ -43,20 +83,25 @@ export default function AdminBookingsPage() {
           </Button>
           <h1 className="text-[22px] font-medium">Reservas</h1>
         </div>
-        <Button size="sm" className="flex gap-1" onClick={() => setIsCreateOpen(true)}>
-          <IconPlus size={16} /> Nova
-        </Button>
+        <div className="flex gap-2">
+          <Button size="sm" variant="secondary" onClick={() => setIsReportOpen(true)}>
+            Emitir Relatório
+          </Button>
+          <Button size="sm" className="flex gap-1" onClick={() => setIsCreateOpen(true)}>
+            <IconPlus size={16} /> Nova
+          </Button>
+        </div>
       </div>
       <div className="flex-1 overflow-y-auto space-y-3 pb-4 mt-2">
-        {RESERVAS.map((r) => {
-          const espaco = ESPACOS.find(e => e.id === r.espacoId)
+        {reservas.map((r) => {
+          const espaco = espacos.find(e => e.id === r.espacoId)
           return (
             <Card key={r.id}>
               <CardContent className="p-4 flex justify-between items-start gap-2">
                 <div className="flex-1">
                   <p className="font-medium">Reserva #{r.id}</p>
                   <p className="text-sm text-muted-foreground">{espaco?.nome}</p>
-                  <p className="text-sm text-muted-foreground mb-1">{format(r.dataHoraInicio, 'dd/MM/yyyy HH:mm')} - {format(r.dataHoraTermino, 'HH:mm')}</p>
+                  <p className="text-sm text-muted-foreground mb-1">{format(new Date(r.dataHoraInicio), 'dd/MM/yyyy HH:mm')} - {format(new Date(r.dataHoraTermino), 'HH:mm')}</p>
                   <StatusBadge status={r.status} />
                 </div>
                 <div className="flex flex-col gap-2">
@@ -80,8 +125,10 @@ export default function AdminBookingsPage() {
             <DialogTitle>Adicionar Reserva</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-3 py-4">
-            <InputLabel label="ID do Espaço" type="number" placeholder="ID do Espaço" />
-            <InputLabel label="Data de Início" type="datetime-local" />
+            <InputLabel label="CPF Usuário" type="text" placeholder="CPF" value={createData.cpf} onChange={(e) => setCreateData({...createData, cpf: e.target.value})} />
+            <InputLabel label="ID do Espaço" type="number" placeholder="ID do Espaço" value={createData.espacoId} onChange={(e) => setCreateData({...createData, espacoId: e.target.value})} />
+            <InputLabel label="Data de Início" type="datetime-local" value={createData.dataHoraInicio} onChange={(e) => setCreateData({...createData, dataHoraInicio: e.target.value})} />
+            <InputLabel label="Data de Término" type="datetime-local" value={createData.dataHoraTermino} onChange={(e) => setCreateData({...createData, dataHoraTermino: e.target.value})} />
           </div>
           <DialogFooter className="grid grid-cols-2 gap-2">
             <DialogClose>
@@ -100,20 +147,15 @@ export default function AdminBookingsPage() {
           </DialogHeader>
           {bookingToEdit && (
             <div className="flex flex-col gap-3 py-4">
-              <InputLabel label="ID do Espaço" type="number" defaultValue={bookingToEdit.espacoId} />
+              <InputLabel label="ID do Espaço" type="number" defaultValue={bookingToEdit.espacoId} disabled />
+              <InputLabel label="Nova Data Início" type="datetime-local" value={editData.dataHoraInicio} onChange={(e) => setEditData({...editData, dataHoraInicio: e.target.value})} />
+              <InputLabel label="Nova Data Término" type="datetime-local" value={editData.dataHoraTermino} onChange={(e) => setEditData({...editData, dataHoraTermino: e.target.value})} />
               <div className="flex flex-col gap-2">
                 <Label>Status</Label>
                 <Select defaultValue={bookingToEdit.status}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um status" />
+                  <SelectTrigger disabled>
+                    <SelectValue placeholder="Status apenas reflete o backend" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {Object.values(ReservaStatus).map((status) => (
-                        <SelectItem key={status} value={status}>{status}</SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
                 </Select>
               </div>
             </div>
@@ -140,6 +182,25 @@ export default function AdminBookingsPage() {
               <Button variant="outline" className="w-full">Não</Button>
             </DialogClose>
             <Button variant="destructive" onClick={handleConfirmDelete} className="w-full">Sim</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Report Dialog */}
+      <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
+        <DialogContent className="w-[90vw] max-w-[350px] rounded-lg">
+          <DialogHeader>
+            <DialogTitle>Emitir Relatório de Reservas</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 py-4">
+            <InputLabel label="Data de Início" type="datetime-local" value={reportData.dataHoraInicio} onChange={(e) => setReportData({...reportData, dataHoraInicio: e.target.value})} />
+            <InputLabel label="Data de Término" type="datetime-local" value={reportData.dataHoraTermino} onChange={(e) => setReportData({...reportData, dataHoraTermino: e.target.value})} />
+          </div>
+          <DialogFooter className="grid grid-cols-2 gap-2">
+            <DialogClose>
+              <Button variant="outline" className="w-full">Cancelar</Button>
+            </DialogClose>
+            <Button onClick={handleEmitReport} className="w-full">Gerar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

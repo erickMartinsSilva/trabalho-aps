@@ -1,21 +1,20 @@
 import InputGroup from "@/components/InputLabel";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { cpfValido } from "@/utils";
-import { useState } from "react";
+import { cpfValido, clearSession } from "@/utils";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { UsuarioService } from "@/api/usuarioService";
 
 interface LoginPageFormData {
   cpf: string
   password: string
-  isAdmin?: boolean
 }
 
 export default function LoginPage() {
   const [formData, setFormData] = useState<LoginPageFormData>({
     cpf: "",
-    password: "",
-    isAdmin: false
+    password: ""
   })
   const [errors, setErrors] = useState<LoginPageFormData>({
     cpf: "",
@@ -24,18 +23,32 @@ export default function LoginPage() {
 
   const navigate = useNavigate()
 
-  const onSubmit = () => {
+  const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    clearSession()
+  }, [])
+
+  const onSubmit = async () => {
     const { valid, formErrors } = validateFormSubmission(formData)
     if(!valid) {
       return setErrors(formErrors)
     }
 
-    if (formData.isAdmin) {
-      localStorage.setItem('role', 'admin')
-      navigate("/admin")
-    } else {
-      localStorage.setItem('role', 'user')
-      navigate("/home")
+    setIsLoading(true)
+    try {
+      const res = await UsuarioService.login(formData.cpf, formData.password)
+      if (res.sucesso) {
+        localStorage.setItem('role', res.isAdmin ? 'admin' : 'user')
+        localStorage.setItem('cpf', formData.cpf)
+        navigate(res.isAdmin ? "/admin" : "/home")
+      } else {
+        setErrors({ ...errors, cpf: res.mensagem })
+      }
+    } catch (err: any) {
+      setErrors({ ...errors, cpf: "Erro de conexão com a API: " + err.message })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -46,10 +59,10 @@ export default function LoginPage() {
       newErrors.cpf = "CPF inválido"
     }
 
-    const passwordValidationRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[^\s]{8,15}$/
-    const passwordValid = form.password.length >= 8 && passwordValidationRegex.test(form.password)
+    const passwordValidationRegex = /^(?=.*[a-zA-Z])(?=.*\d)[^\s]{7,}$/
+    const passwordValid = form.password.length >= 7 && passwordValidationRegex.test(form.password)
     if(!passwordValid) {
-      newErrors.password = "Senha inválida. A senha deve ter pelo menos 8 caracteres e deve ser composta de números e letras maiúsculas e minúsculas"
+      newErrors.password = "Senha inválida. A senha deve ter pelo menos 7 caracteres e deve ser composta de números e letras"
     }
 
     const valid = newErrors.cpf === "" && newErrors.password === ""
@@ -93,19 +106,12 @@ export default function LoginPage() {
           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
         />
 
-        <div className="flex items-center gap-2 mb-6 mt-4">
-          <input 
-            type="checkbox" 
-            id="isAdmin" 
-            checked={formData.isAdmin}
-            onChange={(e) => setFormData({ ...formData, isAdmin: e.target.checked })}
-            className="w-4 h-4"
-          />
-          <label htmlFor="isAdmin" className="text-sm font-medium">Mock: Logar como Administrador</label>
+        <div className="mb-6 mt-4">
+          {/* O status de Administrador é verificado automaticamente pelo sistema */}
         </div>
 
-        <Button size="lg" className={"mx-auto"} onClick={onSubmit} disabled={!formSubmittable}>
-          Entrar
+        <Button size="lg" className={"mx-auto w-full max-w-[200px]"} onClick={onSubmit} disabled={!formSubmittable || isLoading}>
+          {isLoading ? "Entrando..." : "Entrar"}
         </Button>
       </Card>
     </div>

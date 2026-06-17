@@ -1,36 +1,89 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { IconEdit, IconTrash, IconPlus, IconArrowLeft } from '@tabler/icons-react'
+import { IconEdit, IconTrash, IconPlus, IconArrowLeft, IconTool } from '@tabler/icons-react'
 import { useNavigate } from 'react-router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { EspacoService, type EspacoInfo } from '@/api/espacoService'
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import InputLabel from '@/components/InputLabel'
 import { StatusBadge } from '@/components/StatusBadge'
-import { type Espaco, EspacoStatus } from '@/models'
-import { ESPACOS } from '@/data'
+
 
 export default function AdminSpacesPage() {
   const navigate = useNavigate()
 
+  const [spaces, setSpaces] = useState<EspacoInfo[]>([])
   const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [spaceToEdit, setSpaceToEdit] = useState<Espaco | null>(null)
-  const [spaceToDelete, setSpaceToDelete] = useState<Espaco | null>(null)
+  const [spaceToEdit, setSpaceToEdit] = useState<EspacoInfo | null>(null)
+  const [spaceToDelete, setSpaceToDelete] = useState<EspacoInfo | null>(null)
 
-  const handleConfirmCreate = () => {
-    alert("Espaço adicionado com sucesso!")
-    setIsCreateOpen(false)
+  const [createData, setCreateData] = useState({ nome: '', descricao: '', capacidade: '' })
+  const [editData, setEditData] = useState({ nome: '', descricao: '', capacidade: '' })
+
+  const fetchSpaces = () => EspacoService.listarEspacos().then(res => {
+    console.log("Fetched spaces:", res);
+    setSpaces(res);
+  }).catch(console.error)
+
+  useEffect(() => {
+    fetchSpaces()
+  }, [])
+
+  const adminCpf = localStorage.getItem('cpf') || ''
+
+  const handleConfirmCreate = async () => {
+    try {
+      await EspacoService.cadastrarEspaco(adminCpf, createData.nome, createData.descricao, Number(createData.capacidade))
+      alert("Espaço adicionado com sucesso!")
+      setIsCreateOpen(false)
+      fetchSpaces()
+    } catch(e: any) { alert("Erro: " + e.message) }
   }
 
-  const handleConfirmEdit = () => {
-    alert(`Espaço ${spaceToEdit?.nome} atualizado com sucesso!`)
-    setSpaceToEdit(null)
+  const handleConfirmEdit = async () => {
+    if (!spaceToEdit) return
+    try {
+      await EspacoService.atualizarEspaco(adminCpf, spaceToEdit.id, editData.nome || undefined, editData.descricao || undefined, editData.capacidade ? Number(editData.capacidade) : undefined)
+      alert(`Espaço ${spaceToEdit.nome} atualizado com sucesso!`)
+      setSpaceToEdit(null)
+      fetchSpaces()
+    } catch(e: any) { alert("Erro: " + e.message) }
   }
 
-  const handleConfirmDelete = () => {
-    alert(`Espaço ${spaceToDelete?.nome} excluído!`)
-    setSpaceToDelete(null)
+  const handleConfirmDelete = async () => {
+    if (!spaceToDelete) return
+    try {
+      await EspacoService.deletarEspaco(adminCpf, spaceToDelete.id)
+      alert(`Espaço ${spaceToDelete.nome} excluído!`)
+      setSpaceToDelete(null)
+      fetchSpaces()
+    } catch(e: any) { alert("Erro: " + e.message) }
+  }
+
+  const handleFecharEspaco = async (id: number) => {
+    try {
+      const res = await EspacoService.fecharEspaco(adminCpf, id)
+      if (res.sucesso) {
+        alert("Espaço fechado para manutenção!")
+        fetchSpaces()
+      } else {
+        alert("Erro ao fechar espaço: " + res.mensagem)
+      }
+    } catch(e: any) { alert("Erro: " + e.message) }
+  }
+
+  const handleReabrirEspaco = async (id: number) => {
+    try {
+      const res = await EspacoService.reabrirEspaco(adminCpf, id)
+      if (res.sucesso) {
+        alert("Espaço reaberto com sucesso!")
+        fetchSpaces()
+      } else {
+        alert("Erro ao reabrir espaço: " + res.mensagem)
+      }
+    } catch(e: any) { alert("Erro: " + e.message) }
   }
 
   return (
@@ -47,7 +100,7 @@ export default function AdminSpacesPage() {
         </Button>
       </div>
       <div className="flex-1 overflow-y-auto space-y-3 pb-4 mt-2">
-        {ESPACOS.map((s) => (
+        {spaces.map((s) => (
           <Card key={s.id}>
             <CardContent className="p-4 flex justify-between items-center gap-2">
               <div className="flex-1">
@@ -55,11 +108,20 @@ export default function AdminSpacesPage() {
                 <p className="text-sm text-muted-foreground mb-1">Capacidade: {s.capacidadeMaxima}</p>
                 <StatusBadge status={s.status} />
               </div>
-              <div className="flex flex-col gap-2">
-                <Button variant="outline" size="sm" className="gap-2 w-full" onClick={() => setSpaceToEdit(s)}>
+              <div className="flex flex-col gap-2 shrink-0">
+                <Button variant="outline" size="sm" className="gap-2 w-full justify-start" onClick={() => { setSpaceToEdit(s); setEditData({ nome: s.nome, descricao: s.descricao || '', capacidade: String(s.capacidadeMaxima) }) }}>
                   <IconEdit size={16}/> Editar
                 </Button>
-                <Button variant="destructive" size="sm" className="gap-2 w-full" onClick={() => setSpaceToDelete(s)}>
+                {s.status === 'Em manutenção' ? (
+                  <Button variant="secondary" size="sm" className="gap-2 w-full justify-start text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:text-emerald-300" onClick={() => handleReabrirEspaco(s.id)}>
+                    <IconTool size={16}/> Reabrir
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" className="gap-2 w-full justify-start text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:text-amber-300" onClick={() => handleFecharEspaco(s.id)}>
+                    <IconTool size={16}/> Manutenção
+                  </Button>
+                )}
+                <Button variant="destructive" size="sm" className="gap-2 w-full justify-start" onClick={() => setSpaceToDelete(s)}>
                   <IconTrash size={16}/> Excluir
                 </Button>
               </div>
@@ -75,8 +137,9 @@ export default function AdminSpacesPage() {
             <DialogTitle>Adicionar Espaço</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-3 py-4">
-            <InputLabel label="Nome" placeholder="Nome do espaço" />
-            <InputLabel label="Capacidade" type="number" placeholder="Capacidade máxima" />
+            <InputLabel label="Nome" placeholder="Nome do espaço" value={createData.nome} onChange={(e) => setCreateData({...createData, nome: e.target.value})} />
+            <InputLabel label="Descrição" placeholder="Descrição opcional" value={createData.descricao} onChange={(e) => setCreateData({...createData, descricao: e.target.value})} />
+            <InputLabel label="Capacidade" type="number" placeholder="Capacidade máxima" value={createData.capacidade} onChange={(e) => setCreateData({...createData, capacidade: e.target.value})} />
           </div>
           <DialogFooter className="grid grid-cols-2 gap-2">
             <DialogClose>
@@ -95,21 +158,15 @@ export default function AdminSpacesPage() {
           </DialogHeader>
           {spaceToEdit && (
             <div className="flex flex-col gap-3 py-4">
-              <InputLabel label="Nome" defaultValue={spaceToEdit.nome} />
-              <InputLabel label="Capacidade" type="number" defaultValue={spaceToEdit.capacidadeMaxima} />
+              <InputLabel label="Nome" value={editData.nome} onChange={(e) => setEditData({...editData, nome: e.target.value})} />
+              <InputLabel label="Descrição" value={editData.descricao} onChange={(e) => setEditData({...editData, descricao: e.target.value})} />
+              <InputLabel label="Capacidade" type="number" value={editData.capacidade} onChange={(e) => setEditData({...editData, capacidade: e.target.value})} />
               <div className="flex flex-col gap-2">
                 <Label>Status</Label>
                 <Select defaultValue={spaceToEdit.status}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um status" />
+                  <SelectTrigger disabled>
+                    <SelectValue placeholder="Status" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {Object.values(EspacoStatus).map((status) => (
-                        <SelectItem key={status} value={status}>{status}</SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
                 </Select>
               </div>
             </div>

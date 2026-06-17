@@ -2,37 +2,55 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { IconEdit, IconTrash, IconPlus, IconArrowLeft } from '@tabler/icons-react'
 import { useNavigate } from 'react-router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { UsuarioService, type UsuarioInfo } from '@/api/usuarioService'
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import InputLabel from '@/components/InputLabel'
-import { type Usuario } from '@/models'
-
-const MOCK_USERS: Usuario[] = [
-  { id: 1, nome: "João Silva", cpf: "111.222.333-44" },
-  { id: 2, nome: "Maria Oliveira", cpf: "555.666.777-88" },
-  { id: 3, nome: "Carlos Pereira", cpf: "999.888.777-66" },
-]
 
 export default function AdminUsersPage() {
   const navigate = useNavigate()
   
+  const [users, setUsers] = useState<UsuarioInfo[]>([])
   const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [userToEdit, setUserToEdit] = useState<Usuario | null>(null)
-  const [userToDelete, setUserToDelete] = useState<Usuario | null>(null)
+  const [userToEdit, setUserToEdit] = useState<UsuarioInfo | null>(null)
+  const [userToDelete, setUserToDelete] = useState<UsuarioInfo | null>(null)
 
-  const handleConfirmCreate = () => {
-    alert("Usuário adicionado com sucesso!")
-    setIsCreateOpen(false)
+  const [createData, setCreateData] = useState({ cpf: '', senha: '' })
+  const [editData, setEditData] = useState({ cpf: '', senha: '' })
+
+  const fetchUsers = () => UsuarioService.listarUsuarios().then(setUsers).catch(console.error)
+
+  useEffect(() => { fetchUsers() }, [])
+
+  const handleConfirmCreate = async () => {
+    try {
+      await UsuarioService.cadastrarUsuario(createData.cpf, createData.senha)
+      alert("Usuário adicionado com sucesso!")
+      setIsCreateOpen(false)
+      fetchUsers()
+    } catch(e: any) { alert("Erro: " + e.message) }
   }
 
-  const handleConfirmEdit = () => {
-    alert(`Usuário ${userToEdit?.nome} atualizado com sucesso!`)
-    setUserToEdit(null)
+  const handleConfirmEdit = async () => {
+    if(!userToEdit) return
+    try {
+      // The API doesn't allow changing CPF, and we don't have Nome.
+      // So Edit would only realistically be 'alterarSenha'.
+      await UsuarioService.atualizarUsuario(editData.cpf || undefined, editData.senha || undefined)
+      alert(`Usuário atualizado com sucesso!`)
+      setUserToEdit(null)
+      fetchUsers()
+    } catch(e: any) { alert("Erro: " + e.message) }
   }
 
-  const handleConfirmDelete = () => {
-    alert(`Usuário ${userToDelete?.nome} excluído!`)
-    setUserToDelete(null)
+  const handleConfirmDelete = async () => {
+    if(!userToDelete) return
+    try {
+      await UsuarioService.deletarUsuario(userToDelete.cpf)
+      alert(`Usuário excluído!`)
+      setUserToDelete(null)
+      fetchUsers()
+    } catch(e: any) { alert("Erro: " + e.message) }
   }
 
   return (
@@ -49,15 +67,14 @@ export default function AdminUsersPage() {
         </Button>
       </div>
       <div className="flex-1 overflow-y-auto space-y-3 pb-4 mt-2">
-        {MOCK_USERS.map((u) => (
-          <Card key={u.id}>
+        {users.map((u) => (
+          <Card key={u.cpf}>
             <CardContent className="p-4 flex justify-between items-center gap-2">
               <div className="flex-1">
-                <p className="font-medium">{u.nome}</p>
-                <p className="text-sm text-muted-foreground">{u.cpf}</p>
+                <p className="font-medium">CPF: {u.cpf}</p>
               </div>
               <div className="flex flex-col gap-2">
-                <Button variant="outline" size="sm" className="gap-2 w-full" onClick={() => setUserToEdit(u)}>
+                <Button variant="outline" size="sm" className="gap-2 w-full" onClick={() => { setUserToEdit(u); setEditData({ cpf: u.cpf, senha: '' }) }}>
                   <IconEdit size={16} /> Editar
                 </Button>
                 <Button variant="destructive" size="sm" className="gap-2 w-full" onClick={() => setUserToDelete(u)}>
@@ -76,8 +93,8 @@ export default function AdminUsersPage() {
             <DialogTitle>Adicionar Usuário</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-3 py-4">
-            <InputLabel label="Nome" placeholder="Nome completo" />
-            <InputLabel label="CPF" placeholder="000.000.000-00" />
+            <InputLabel label="CPF" placeholder="Apenas números" value={createData.cpf} onChange={(e) => setCreateData({...createData, cpf: e.target.value})} />
+            <InputLabel label="Senha" type="password" placeholder="Senha" value={createData.senha} onChange={(e) => setCreateData({...createData, senha: e.target.value})} />
           </div>
           <DialogFooter className="grid grid-cols-2 gap-2">
             <DialogClose>
@@ -96,8 +113,8 @@ export default function AdminUsersPage() {
           </DialogHeader>
           {userToEdit && (
             <div className="flex flex-col gap-3 py-4">
-              <InputLabel label="Nome" defaultValue={userToEdit.nome} />
-              <InputLabel label="CPF" defaultValue={userToEdit.cpf} />
+              <InputLabel label="CPF" value={editData.cpf} onChange={(e) => setEditData({...editData, cpf: e.target.value})} />
+              <InputLabel label="Nova Senha" type="password" value={editData.senha} onChange={(e) => setEditData({...editData, senha: e.target.value})} />
             </div>
           )}
           <DialogFooter className="grid grid-cols-2 gap-2">
@@ -115,7 +132,7 @@ export default function AdminUsersPage() {
           <DialogHeader>
             <DialogTitle>Excluir Usuário</DialogTitle>
           </DialogHeader>
-          <p>Tem certeza que deseja excluir o usuário <strong>{userToDelete?.nome}</strong>?</p>
+          <p>Tem certeza que deseja excluir o usuário com CPF <strong>{userToDelete?.cpf}</strong>?</p>
           <p className="font-bold text-red-800">Esta ação não pode ser desfeita.</p>
           <DialogFooter className="grid grid-cols-2 gap-2 mt-4">
             <DialogClose>

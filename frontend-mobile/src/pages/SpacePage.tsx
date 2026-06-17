@@ -1,13 +1,14 @@
 import { StatusBadge } from "@/components/StatusBadge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { ESPACOS } from "@/data"
+import { EspacoService, type EspacoInfo } from "@/api/espacoService"
+import { ReservaService } from "@/api/reservaService"
 import { ChevronDownIcon, UsersIcon } from "lucide-react"
 import { useNavigate, useParams } from "react-router"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import InputLabel from "@/components/InputLabel"
 import { EspacoStatus } from "@/models"
@@ -32,20 +33,54 @@ export default function SpacePage() {
   })
   const navigate = useNavigate()
   const { id } = useParams()
+  const [space, setSpace] = useState<EspacoInfo | null>(null)
 
-  const space = ESPACOS.find((e) => e.id === Number(id))
+  useEffect(() => {
+    if (id) {
+      EspacoService.buscarEspaco(Number(id))
+        .then(res => setSpace(res.espaco))
+        .catch(err => console.error(err))
+    }
+  }, [id])
 
-  
-  const onSubmit = () => {
+  const onSubmit = async () => {
     const { valid, formErrors } = validateFormSubmission(formData)
     if(!valid) {
       setErrors(formErrors)
       return
     }
-    alert("Reserva feita com sucesso!")
-    setTimeout(() => {
-      navigate("/home")
-    }, 1000)
+
+    const [hInicio, mInicio] = formData.horaInicio.split(':')
+    const [hFim, mFim] = formData.horaFim.split(':')
+    const start = new Date(formData.data!)
+    start.setHours(Number(hInicio), Number(mInicio), 0)
+    const end = new Date(formData.data!)
+    end.setHours(Number(hFim), Number(mFim), 0)
+
+    const cpf = localStorage.getItem('cpf')
+    if (!cpf) {
+      alert("Erro: CPF não encontrado no login")
+      return
+    }
+
+    try {
+      const res = await ReservaService.reservarEspaco(
+        cpf,
+        Number(id),
+        start.toISOString(),
+        end.toISOString()
+      )
+      if (res.sucesso) {
+        alert("Reserva feita com sucesso!")
+        setTimeout(() => {
+          navigate("/home")
+        }, 1000)
+      } else {
+        alert("Erro ao reservar: " + res.mensagem)
+      }
+    } catch (err: any) {
+      alert("Erro de API: " + err.message)
+    }
   }
 
   const validateFormSubmission = (formData: SpaceFormData) => {
@@ -121,7 +156,7 @@ export default function SpacePage() {
               <p className="text-lg">{space.capacidadeMaxima}</p>
             </div>
           </div>
-          <p>{space.descricao ?? ""}</p>
+          {space.descricao && <p className="text-sm text-muted-foreground">{space.descricao}</p>}
         </section>
         
         <form>

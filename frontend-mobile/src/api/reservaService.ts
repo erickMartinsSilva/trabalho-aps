@@ -1,3 +1,4 @@
+import { ReservaStatus, type ReservaStatusValue } from '@/models'
 import { callSoapService } from './soapClient'
 
 export interface ReservaInfo {
@@ -7,11 +8,24 @@ export interface ReservaInfo {
   cpfUsuario: string
   dataHoraInicio: string
   dataHoraTermino: string
-  status: string
+  status: ReservaStatusValue
 }
 
 const namespace = 'http://www.aps.com/api/reserva'
 const endpointPath = '/reserva'
+
+export function mapReservaStatus(status: string): ReservaStatusValue {
+  switch (status) {
+    case 'CONFIRMADA':
+      return ReservaStatus.CONFIRMADA
+    case 'CONCLUIDA':
+      return ReservaStatus.CONCLUIDA
+    case 'CANCELADA':
+      return ReservaStatus.CANCELADA
+    default:
+      return ReservaStatus.CONFIRMADA
+  }
+}
 
 export const ReservaService = {
   reservarEspaco: async (cpf: string, espacoId: number, dataHoraInicio: string, dataHoraTermino: string) => {
@@ -43,19 +57,33 @@ export const ReservaService = {
   },
 
   buscarReserva: async (id: number) => {
-    return callSoapService<{ reserva: ReservaInfo }>(
+    return callSoapService<{ reserva: any }>(
       { endpointPath, namespace, operation: 'buscarReserva' },
       { id }
-    )
+    ).then(res => {
+      if (res.reserva) {
+        res.reserva.id = Number(res.reserva.id)
+        res.reserva.espacoId = Number(res.reserva.espacoId)
+        res.reserva.status = mapReservaStatus(res.reserva.status)
+      }
+      return res as { reserva: ReservaInfo }
+    })
   },
 
   listarReservas: async () => {
-    return callSoapService<{ reservas?: ReservaInfo | ReservaInfo[] }>(
+    return callSoapService<{ reservas?: any | any[] }>(
       { endpointPath, namespace, operation: 'listarReservas' },
       {}
     ).then(res => {
       if (!res.reservas) return []
-      return Array.isArray(res.reservas) ? res.reservas : [res.reservas]
+      const arr = Array.isArray(res.reservas) ? res.reservas : [res.reservas]
+      return arr.map(r => ({
+        ...r,
+        id: Number(r.id),
+        espacoId: Number(r.espacoId),
+        status: mapReservaStatus(r.status)
+      })) as ReservaInfo[]
     })
   }
 }
+

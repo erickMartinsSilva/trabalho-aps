@@ -9,10 +9,15 @@ const endpointPath = '/usuario'
 
 export const UsuarioService = {
   login: async (cpf: string, senha: string) => {
-    return callSoapService<{ sucesso: boolean; mensagem: string }>(
+    return callSoapService<{ sucesso: boolean; mensagem: string; isAdmin?: any }>(
       { endpointPath, namespace, operation: 'login' },
       { cpf, senha }
-    )
+    ).then(res => {
+      return {
+        ...res,
+        isAdmin: res.isAdmin === true || res.isAdmin === 'true'
+      }
+    })
   },
 
   cadastrarUsuario: async (cpf: string, senha: string) => {
