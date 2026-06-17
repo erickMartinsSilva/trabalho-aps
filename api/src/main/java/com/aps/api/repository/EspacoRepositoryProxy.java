@@ -17,15 +17,15 @@ public class EspacoRepositoryProxy implements EspacoRepository {
     }
 
     @Override
-    public boolean cadastrar(String nome, int capacidadeMax) {
+    public boolean cadastrar(String nome, String descricao, int capacidadeMax) {
         System.out.println("[PROXY ESPAÇO] Interceptando cadastro: " + nome);
-        return bancoReal.cadastrar(nome, capacidadeMax);
+        return bancoReal.cadastrar(nome, descricao, capacidadeMax);
     }
 
     @Override
-    public boolean atualizar(int id, String nome, Integer capacidadeMax) {
+    public boolean atualizar(int id, String nome, String descricao, Integer capacidadeMax) {
         System.out.println("[PROXY ESPAÇO] Interceptando atualização do ID: " + id);
-        return bancoReal.atualizar(id, nome, capacidadeMax);
+        return bancoReal.atualizar(id, nome, descricao, capacidadeMax);
     }
 
     @Override
