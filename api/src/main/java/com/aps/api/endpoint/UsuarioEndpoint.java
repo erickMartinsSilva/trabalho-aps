@@ -58,8 +58,8 @@ public class UsuarioEndpoint {
     @ResponsePayload
     public Source atualizarUsuario(@RequestPayload Source request) throws Exception {
         Document doc = parse(request);
-        boolean sucesso = usuarioService.atualizarUsuario(el(doc, "cpf"), el(doc, "senha"));
-        String mensagem = sucesso ? "Usuário atualizado com sucesso" : "Usuário não encontrado";
+        boolean sucesso = usuarioService.atualizarUsuario(el(doc, "cpfAntigo"), el(doc, "cpfNovo"), el(doc, "senha"));
+        String mensagem = sucesso ? "Usuário atualizado com sucesso" : "Usuário não encontrado ou novo CPF já existente";
         return resp("atualizarUsuarioResponse", "<tns:sucesso>" + sucesso + "</tns:sucesso><tns:mensagem>" + mensagem + "</tns:mensagem>");
     }
 

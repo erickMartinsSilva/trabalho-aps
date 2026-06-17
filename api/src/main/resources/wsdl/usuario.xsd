@@ -50,8 +50,9 @@
     <xs:element name="atualizarUsuarioRequest">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="cpf"   type="xs:string" minOccurs="0"/>
-                <xs:element name="senha" type="xs:string" minOccurs="0"/>
+                <xs:element name="cpfAntigo" type="xs:string"/>
+                <xs:element name="cpfNovo"   type="xs:string" minOccurs="0"/>
+                <xs:element name="senha"     type="xs:string" minOccurs="0"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>

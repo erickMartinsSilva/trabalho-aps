@@ -6,7 +6,7 @@ public interface UsuarioService {
     boolean login(String cpf, String senha);
     boolean cadastrarUsuario(String cpf, String senha);
     boolean atualizarSenha(String cpf, String novaSenha, String senhaAtual);
-    boolean atualizarUsuario(String cpf, String novaSenha);
+    boolean atualizarUsuario(String cpfAntigo, String cpfNovo, String novaSenha);
     boolean deletarUsuario(String cpf);
     String buscarUsuario(String cpf);
     List<String> listarUsuarios();
