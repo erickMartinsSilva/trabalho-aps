@@ -1,5 +1,6 @@
 import { callSoapService } from './soapClient'
 import { mapReservaStatus } from './reservaService'
+import type { ReservaStatusValue } from '@/models'
 
 export interface RelatorioInfo {
   id: number
@@ -8,7 +9,7 @@ export interface RelatorioInfo {
   cpfUsuario: string
   dataHoraInicio: string
   dataHoraTermino: string
-  status: string
+  status: ReservaStatusValue
 }
 
 const namespace = 'http://www.aps.com/api/relatorio'

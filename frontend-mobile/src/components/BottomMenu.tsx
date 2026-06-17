@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router'
 import { IconHome, IconBuilding, IconCalendar } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
+import type { ReactElement } from 'react'
 
 export type NavItem = {
   path: string
@@ -16,9 +17,10 @@ const NAV_ITEMS: NavItem[] = [
 
 interface BottomMenuProps {
   className?: string
+  hidden?: boolean
 }
 
-export function BottomMenu({ className }: BottomMenuProps) {
+export function BottomMenu({ className, hidden }: BottomMenuProps) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
 
@@ -35,6 +37,7 @@ export function BottomMenu({ className }: BottomMenuProps) {
         className,
       )}
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      hidden={hidden}
     >
       {NAV_ITEMS.map(({ path, label, Icon }) => {
         const isActive = pathname === path

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router'
 import { IconSun, IconMoon } from '@tabler/icons-react'
 import HomePage from '@/pages/HomePage'
 import SpacesPage from '@/pages/SpacesPage'
@@ -11,6 +11,7 @@ import SpacePage from './pages/SpacePage'
 import AdminPage from './pages/AdminPage'
 import AdminSpacesPage from './pages/AdminSpacesPage'
 import AdminBookingsPage from './pages/AdminBookingsPage'
+import { Toaster } from '@/components/ui/sonner'
 import AdminUsersPage from './pages/AdminUsersPage'
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
@@ -23,6 +24,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 
 function AppShell() {
   const [dark, setDark] = useState(false)
+  useLocation()
 
   const toggleDark = () => {
     setDark((d) => !d)
@@ -71,7 +73,7 @@ function AppShell() {
           <Route path="/admin/bookings" element={<AdminRoute><AdminBookingsPage /></AdminRoute>} />
           <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
         </Routes>
-        {!userIsAdmin && <BottomMenu/>}
+        <BottomMenu hidden={userIsAdmin}/>
       </main>
 
     </div>
@@ -82,6 +84,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppShell />
+      <Toaster position="bottom-center" />
     </BrowserRouter>
   )
 }

@@ -14,6 +14,9 @@ import { Button } from '@/components/ui/button'
 import { useState, useEffect } from 'react'
 import { EspacoService, type EspacoInfo } from '@/api/espacoService'
 import { format } from 'date-fns'
+import { toast } from 'sonner'
+
+import { ReservaService } from '@/api/reservaService'
 
 export interface BookingCardProps {
   id: number
@@ -24,6 +27,7 @@ export interface BookingCardProps {
   status: ReservaStatusValue
   onClick?: () => void
   className?: string
+  onCancelled?: () => void
 }
 
 const fmt = new Intl.DateTimeFormat('pt-BR', {
@@ -43,6 +47,7 @@ export function BookingCard({
   status,
   onClick,
   className,
+  onCancelled,
 }: BookingCardProps) {
   const [cancelBookingButtonPressed, setCancelBookingButtonPressed] = useState<boolean>(false)
 
@@ -62,9 +67,19 @@ export function BookingCard({
     }
   }, [espacoId])
 
-  const onConfirmCancelBooking = () => {
-    alert(`Reserva número ${id} cancelada com sucesso!`)
-    setCancelBookingButtonPressed(false)
+  const onConfirmCancelBooking = async () => {
+    try {
+      const res = await ReservaService.cancelarReserva(id)
+      if (res.sucesso) {
+        toast.success(`Reserva número ${id} cancelada com sucesso!`)
+        setCancelBookingButtonPressed(false)
+        onCancelled?.()
+      } else {
+        toast.error("Erro ao cancelar reserva: " + res.mensagem)
+      }
+    } catch (err: any) {
+      console.error(err)
+    }
   }
 
   const cardContent = (

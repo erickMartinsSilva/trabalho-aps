@@ -52,7 +52,12 @@ export const UsuarioService = {
     return callSoapService<{ cpf: string }>(
       { endpointPath, namespace, operation: 'buscarUsuario' },
       { cpf }
-    )
+    ).then(res => {
+      return {
+        ...res,
+        cpf: String(res.cpf)
+      }
+    })
   },
 
   listarUsuarios: async () => {
@@ -61,7 +66,11 @@ export const UsuarioService = {
       {}
     ).then(res => {
       if (!res.usuarios) return []
-      return Array.isArray(res.usuarios) ? res.usuarios : [res.usuarios]
+      const arr = Array.isArray(res.usuarios) ? res.usuarios : [res.usuarios]
+      return arr.map(u => ({
+        ...u,
+        cpf: String(u.cpf)
+      })) as UsuarioInfo[]
     })
   }
 }

@@ -1,4 +1,5 @@
 import { XMLParser, XMLBuilder } from 'fast-xml-parser'
+import { toast } from 'sonner'
 
 export interface SoapClientOptions {
   endpointPath: string
@@ -31,40 +32,56 @@ export async function callSoapService<TResponse>(
 
   const xmlRequest = `<?xml version="1.0" encoding="utf-8"?>\n${builder.build(envelope)}`
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'text/xml;charset=UTF-8',
-      // Optional: some servers require SOAPAction
-      // 'SOAPAction': '' 
-    },
-    body: xmlRequest,
-  })
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/xml;charset=UTF-8',
+        // Optional: some servers require SOAPAction
+        // 'SOAPAction': '' 
+      },
+      body: xmlRequest,
+    })
 
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`SOAP request failed with status ${response.status}: ${errorText}`)
+    if (!response.ok) {
+      const errorText = await response.text()
+      const errorMsg = `Requisição SOAP falhou com status ${response.status}: ${errorText}`
+      toast.error(errorMsg)
+      throw new Error(errorMsg)
+    }
+
+    const xmlResponse = await response.text()
+
+    const parser = new XMLParser({
+      ignoreAttributes: false,
+      removeNSPrefix: true, // This makes it much easier to access properties
+    })
+
+    const parsed = parser.parse(xmlResponse)
+    const body = parsed?.Envelope?.Body
+
+    if (!body) {
+      const errorMsg = 'Resposta SOAP inválida: missing Envelope/Body'
+      toast.error(errorMsg)
+      throw new Error(errorMsg)
+    }
+
+    if (body.Fault) {
+      const errorMsg = `Erro na API: ${body.Fault.faultstring || 'Erro desconhecido'}`
+      toast.error(errorMsg)
+      throw new Error(errorMsg)
+    }
+
+    // The response wrapper is typically the operation name + "Response"
+    const responseWrapper = body[`${options.operation}Response`]
+    return responseWrapper as TResponse
+  } catch (err: any) {
+    if (!err.message?.startsWith('Requisição SOAP falhou') && 
+        !err.message?.startsWith('Resposta SOAP inválida') && 
+        !err.message?.startsWith('Erro na API')) {
+      toast.error(`Erro de conexão com o servidor: ${err.message}`)
+    }
+    throw err
   }
-
-  const xmlResponse = await response.text()
-
-  const parser = new XMLParser({
-    ignoreAttributes: false,
-    removeNSPrefix: true, // This makes it much easier to access properties
-  })
-
-  const parsed = parser.parse(xmlResponse)
-  const body = parsed?.Envelope?.Body
-
-  if (!body) {
-    throw new Error('Invalid SOAP response: missing Envelope/Body')
-  }
-
-  if (body.Fault) {
-    throw new Error(`SOAP Fault: ${body.Fault.faultstring || 'Unknown error'}`)
-  }
-
-  // The response wrapper is typically the operation name + "Response"
-  const responseWrapper = body[`${options.operation}Response`]
-  return responseWrapper as TResponse
 }
+

@@ -16,9 +16,7 @@ export default function HomePage() {
   const [espacos, setEspacos] = useState<EspacoInfo[]>([])
   const [nextBooking, setNextBooking] = useState<ReservaInfo | null>(null)
 
-  useEffect(() => {
-    EspacoService.listarEspacos().then(setEspacos).catch(console.error)
-    
+  const fetchNextBooking = () => {
     const cpf = localStorage.getItem('cpf')
     if (cpf) {
       ReservaService.listarReservas().then(res => {
@@ -26,9 +24,16 @@ export default function HomePage() {
         if (userReservas.length > 0) {
           const next = userReservas.sort((a, b) => new Date(a.dataHoraInicio).getTime() - new Date(b.dataHoraInicio).getTime())[0]
           setNextBooking(next)
+        } else {
+          setNextBooking(null)
         }
       }).catch(console.error)
     }
+  }
+
+  useEffect(() => {
+    EspacoService.listarEspacos().then(setEspacos).catch(console.error)
+    fetchNextBooking()
   }, [])
 
   return (
@@ -68,7 +73,12 @@ export default function HomePage() {
           </div>
           {nextBooking ? (
             <div className="cursor-pointer">
-              <BookingCard {...nextBooking} dataHoraInicio={new Date(nextBooking.dataHoraInicio)} dataHoraTermino={new Date(nextBooking.dataHoraTermino)} />
+              <BookingCard
+                {...nextBooking}
+                dataHoraInicio={new Date(nextBooking.dataHoraInicio)}
+                dataHoraTermino={new Date(nextBooking.dataHoraTermino)}
+                onCancelled={fetchNextBooking}
+              />
             </div>
           ) : (
             <Card className="rounded-md border-dashed border-2">

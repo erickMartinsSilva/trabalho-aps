@@ -13,6 +13,7 @@ import { format } from "date-fns"
 import InputLabel from "@/components/InputLabel"
 import { EspacoStatus } from "@/models"
 import { isTimeInPast } from "@/utils"
+import { toast } from 'sonner'
 
 interface SpaceFormData {
   data: Date | undefined
@@ -59,7 +60,7 @@ export default function SpacePage() {
 
     const cpf = localStorage.getItem('cpf')
     if (!cpf) {
-      alert("Erro: CPF não encontrado no login")
+      toast.error("Erro: CPF não encontrado no login")
       return
     }
 
@@ -71,15 +72,15 @@ export default function SpacePage() {
         end.toISOString()
       )
       if (res.sucesso) {
-        alert("Reserva feita com sucesso!")
+        toast.success("Reserva feita com sucesso!")
         setTimeout(() => {
           navigate("/home")
         }, 1000)
       } else {
-        alert("Erro ao reservar: " + res.mensagem)
+        toast.error("Erro ao reservar: " + res.mensagem)
       }
     } catch (err: any) {
-      alert("Erro de API: " + err.message)
+      console.error(err)
     }
   }
 

@@ -146,6 +146,7 @@
     margin: 0 auto;
     font-size: 15px;
     line-height: 1.6;
+    position: relative;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -179,4 +180,10 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Restrict sonner toasts to the phone-sized body canvas */
+[data-sonner-toaster] {
+  position: absolute !important;
+  z-index: 9999;
 }

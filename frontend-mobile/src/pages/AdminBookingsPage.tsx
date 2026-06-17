@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router'
 import { useState, useEffect } from 'react'
 import { ReservaService, type ReservaInfo } from '@/api/reservaService'
 import { EspacoService, type EspacoInfo } from '@/api/espacoService'
-import { RelatorioService } from '@/api/relatorioService'
+import { RelatorioService, type RelatorioInfo } from '@/api/relatorioService'
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
@@ -13,6 +13,7 @@ import InputLabel from '@/components/InputLabel'
 import { StatusBadge } from '@/components/StatusBadge'
 
 import { format } from 'date-fns'
+import { toast } from 'sonner'
 
 export default function AdminBookingsPage() {
   const navigate = useNavigate()
@@ -28,6 +29,7 @@ export default function AdminBookingsPage() {
   const [createData, setCreateData] = useState({ espacoId: '', cpf: '', dataHoraInicio: '', dataHoraTermino: '' })
   const [editData, setEditData] = useState({ dataHoraInicio: '', dataHoraTermino: '' })
   const [reportData, setReportData] = useState({ dataHoraInicio: '', dataHoraTermino: '' })
+  const [reportResults, setReportResults] = useState<RelatorioInfo[] | null>(null)
 
   const fetchReservas = () => ReservaService.listarReservas().then(setReservas).catch(console.error)
 
@@ -39,39 +41,39 @@ export default function AdminBookingsPage() {
   const handleConfirmCreate = async () => {
     try {
       await ReservaService.reservarEspaco(createData.cpf, Number(createData.espacoId), new Date(createData.dataHoraInicio).toISOString(), new Date(createData.dataHoraTermino).toISOString())
-      alert("Reserva adicionada com sucesso!")
+      toast.success("Reserva adicionada com sucesso!")
       setIsCreateOpen(false)
       fetchReservas()
-    } catch (e: any) { alert("Erro: " + e.message) }
+    } catch (e: any) { console.error(e) }
   }
 
   const handleConfirmEdit = async () => {
     if(!bookingToEdit) return
     try {
       await ReservaService.atualizarReserva(bookingToEdit.id, editData.dataHoraInicio ? new Date(editData.dataHoraInicio).toISOString() : undefined, editData.dataHoraTermino ? new Date(editData.dataHoraTermino).toISOString() : undefined)
-      alert(`Reserva #${bookingToEdit.id} atualizada com sucesso!`)
+      toast.success(`Reserva #${bookingToEdit.id} atualizada com sucesso!`)
       setBookingToEdit(null)
       fetchReservas()
-    } catch (e: any) { alert("Erro: " + e.message) }
+    } catch (e: any) { console.error(e) }
   }
 
   const handleConfirmDelete = async () => {
     if(!bookingToDelete) return
     try {
       await ReservaService.deletarReserva(bookingToDelete.id)
-      alert(`Reserva #${bookingToDelete.id} excluída!`)
+      toast.success(`Reserva #${bookingToDelete.id} excluída!`)
       setBookingToDelete(null)
       fetchReservas()
-    } catch (e: any) { alert("Erro: " + e.message) }
+    } catch (e: any) { console.error(e) }
   }
 
   const handleEmitReport = async () => {
     try {
       const report = await RelatorioService.gerarRelatorio(new Date(reportData.dataHoraInicio).toISOString(), new Date(reportData.dataHoraTermino).toISOString())
       console.log("Relatório: ", report)
-      alert(`Relatório gerado com sucesso! Encontradas ${report.length} reservas. (Ver console para dados)`)
+      setReportResults(report)
       setIsReportOpen(false)
-    } catch (e: any) { alert("Erro ao gerar relatório: " + e.message) }
+    } catch (e: any) { console.error(e) }
   }
 
   return (
@@ -201,6 +203,43 @@ export default function AdminBookingsPage() {
               <Button variant="outline" className="w-full">Cancelar</Button>
             </DialogClose>
             <Button onClick={handleEmitReport} className="w-full">Gerar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Report Results Dialog */}
+      <Dialog open={reportResults !== null} onOpenChange={(open) => !open && setReportResults(null)}>
+        <DialogContent className="w-[90vw] max-w-[450px] max-h-[80vh] flex flex-col rounded-lg">
+          <DialogHeader>
+            <DialogTitle>Relatório de Reservas</DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto py-4 space-y-3">
+            {reportResults && reportResults.length === 0 ? (
+              <p className="text-center text-muted-foreground my-6">Nenhuma reserva encontrada para o período selecionado.</p>
+            ) : (
+              reportResults?.map((r) => (
+                <div key={r.id} className="border-b border-border pb-3 last:border-0 last:pb-0">
+                  <div className="flex justify-between items-start gap-2">
+                    <div>
+                      <p className="font-semibold text-sm">Reserva #{r.id}</p>
+                      <p className="text-sm font-medium text-primary">{r.nomeEspaco || `Espaço #${r.espacoId}`}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">CPF Usuário: {r.cpfUsuario}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(r.dataHoraInicio), 'dd/MM/yyyy HH:mm')} - {format(new Date(r.dataHoraTermino), 'HH:mm')}
+                      </p>
+                    </div>
+                    <StatusBadge status={r.status} />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button onClick={() => setReportResults(null)} className="w-full">
+              Fechar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

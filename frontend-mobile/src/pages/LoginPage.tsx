@@ -5,6 +5,7 @@ import { cpfValido, clearSession } from "@/utils";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { UsuarioService } from "@/api/usuarioService";
+import { toast } from 'sonner';
 
 interface LoginPageFormData {
   cpf: string
@@ -43,10 +44,10 @@ export default function LoginPage() {
         localStorage.setItem('cpf', formData.cpf)
         navigate(res.isAdmin ? "/admin" : "/home")
       } else {
-        setErrors({ ...errors, cpf: res.mensagem })
+        toast.error(res.mensagem || "Erro ao fazer login")
       }
     } catch (err: any) {
-      setErrors({ ...errors, cpf: "Erro de conexão com a API: " + err.message })
+      console.error(err)
     } finally {
       setIsLoading(false)
     }
@@ -105,10 +106,6 @@ export default function LoginPage() {
           }
           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
         />
-
-        <div className="mb-6 mt-4">
-          {/* O status de Administrador é verificado automaticamente pelo sistema */}
-        </div>
 
         <Button size="lg" className={"mx-auto w-full max-w-[200px]"} onClick={onSubmit} disabled={!formSubmittable || isLoading}>
           {isLoading ? "Entrando..." : "Entrar"}

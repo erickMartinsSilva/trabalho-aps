@@ -9,6 +9,7 @@ import { Select, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import InputLabel from '@/components/InputLabel'
 import { StatusBadge } from '@/components/StatusBadge'
+import { toast } from 'sonner'
 
 
 export default function AdminSpacesPage() {
@@ -36,54 +37,54 @@ export default function AdminSpacesPage() {
   const handleConfirmCreate = async () => {
     try {
       await EspacoService.cadastrarEspaco(adminCpf, createData.nome, createData.descricao, Number(createData.capacidade))
-      alert("Espaço adicionado com sucesso!")
+      toast.success("Espaço adicionado com sucesso!")
       setIsCreateOpen(false)
       fetchSpaces()
-    } catch(e: any) { alert("Erro: " + e.message) }
+    } catch(e: any) { console.error(e) }
   }
 
   const handleConfirmEdit = async () => {
     if (!spaceToEdit) return
     try {
       await EspacoService.atualizarEspaco(adminCpf, spaceToEdit.id, editData.nome || undefined, editData.descricao || undefined, editData.capacidade ? Number(editData.capacidade) : undefined)
-      alert(`Espaço ${spaceToEdit.nome} atualizado com sucesso!`)
+      toast.success(`Espaço ${spaceToEdit.nome} atualizado com sucesso!`)
       setSpaceToEdit(null)
       fetchSpaces()
-    } catch(e: any) { alert("Erro: " + e.message) }
+    } catch(e: any) { console.error(e) }
   }
 
   const handleConfirmDelete = async () => {
     if (!spaceToDelete) return
     try {
       await EspacoService.deletarEspaco(adminCpf, spaceToDelete.id)
-      alert(`Espaço ${spaceToDelete.nome} excluído!`)
+      toast.success(`Espaço ${spaceToDelete.nome} excluído!`)
       setSpaceToDelete(null)
       fetchSpaces()
-    } catch(e: any) { alert("Erro: " + e.message) }
+    } catch(e: any) { console.error(e) }
   }
 
   const handleFecharEspaco = async (id: number) => {
     try {
       const res = await EspacoService.fecharEspaco(adminCpf, id)
       if (res.sucesso) {
-        alert("Espaço fechado para manutenção!")
+        toast.success("Espaço fechado para manutenção!")
         fetchSpaces()
       } else {
-        alert("Erro ao fechar espaço: " + res.mensagem)
+        toast.error("Erro ao fechar espaço: " + res.mensagem)
       }
-    } catch(e: any) { alert("Erro: " + e.message) }
+    } catch(e: any) { console.error(e) }
   }
 
   const handleReabrirEspaco = async (id: number) => {
     try {
       const res = await EspacoService.reabrirEspaco(adminCpf, id)
       if (res.sucesso) {
-        alert("Espaço reaberto com sucesso!")
+        toast.success("Espaço reaberto com sucesso!")
         fetchSpaces()
       } else {
-        alert("Erro ao reabrir espaço: " + res.mensagem)
+        toast.error("Erro ao reabrir espaço: " + res.mensagem)
       }
-    } catch(e: any) { alert("Erro: " + e.message) }
+    } catch(e: any) { console.error(e) }
   }
 
   return (

@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import { UsuarioService, type UsuarioInfo } from '@/api/usuarioService'
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import InputLabel from '@/components/InputLabel'
+import { toast } from 'sonner'
 
 export default function AdminUsersPage() {
   const navigate = useNavigate()
@@ -25,10 +26,10 @@ export default function AdminUsersPage() {
   const handleConfirmCreate = async () => {
     try {
       await UsuarioService.cadastrarUsuario(createData.cpf, createData.senha)
-      alert("Usuário adicionado com sucesso!")
+      toast.success("Usuário adicionado com sucesso!")
       setIsCreateOpen(false)
       fetchUsers()
-    } catch(e: any) { alert("Erro: " + e.message) }
+    } catch(e: any) { console.error(e) }
   }
 
   const handleConfirmEdit = async () => {
@@ -37,20 +38,20 @@ export default function AdminUsersPage() {
       // The API doesn't allow changing CPF, and we don't have Nome.
       // So Edit would only realistically be 'alterarSenha'.
       await UsuarioService.atualizarUsuario(editData.cpf || undefined, editData.senha || undefined)
-      alert(`Usuário atualizado com sucesso!`)
+      toast.success(`Usuário atualizado com sucesso!`)
       setUserToEdit(null)
       fetchUsers()
-    } catch(e: any) { alert("Erro: " + e.message) }
+    } catch(e: any) { console.error(e) }
   }
 
   const handleConfirmDelete = async () => {
     if(!userToDelete) return
     try {
       await UsuarioService.deletarUsuario(userToDelete.cpf)
-      alert(`Usuário excluído!`)
+      toast.success(`Usuário excluído!`)
       setUserToDelete(null)
       fetchUsers()
-    } catch(e: any) { alert("Erro: " + e.message) }
+    } catch(e: any) { console.error(e) }
   }
 
   return (
