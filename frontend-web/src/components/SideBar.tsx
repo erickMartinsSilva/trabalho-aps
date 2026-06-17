@@ -10,8 +10,8 @@ export type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { path: '/painel', label: 'Painel do Dia', Icon: IconCalendarEvent },
-  { path: '/semana', label: 'Painel da Semana', Icon: IconCalendarWeek }, // Novo Link
-  { path: '/agendamento', label: 'Novo Agendamento', Icon: IconCalendarPlus },
+  { path: '/semana', label: 'Painel da Semana', Icon: IconCalendarWeek },
+  { path: '/reserva', label: 'Nova Reserva', Icon: IconCalendarPlus },
 ]
 
 export function Sidebar() {

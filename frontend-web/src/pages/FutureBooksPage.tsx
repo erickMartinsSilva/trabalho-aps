@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import InputLabel from '@/components/InputLabel'
-import { ESPACOS } from '@/data'
-import { cpfValido } from '@/utils'
+import { cpfValido, isTimeInPast } from '@/utils'
 import { IconCalendarPlus, IconBuilding, IconClock, IconIdBadge2, IconCheck } from '@tabler/icons-react'
+import { EspacoService } from '@/api/espacoService'
+import { ReservaService } from '@/api/reservaService'
+import type { EspacoInfo } from '@/models'
+import { toast } from 'sonner'
 
 export default function FutureBookingPage() {
   const today = new Date()
@@ -19,17 +22,98 @@ export default function FutureBookingPage() {
     cpfResponsavel: ''
   })
   
-  const [cpfError, setCpfError] = useState('')
+  const [errors, setErrors] = useState({
+    data: '',
+    horaInicio: '',
+    horaTermino: '',
+    cpfResponsavel: ''
+  })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [espacos, setEspacos] = useState<EspacoInfo[]>([])
+
+  useEffect(() => {
+    EspacoService.listarEspacos()
+      .then(setEspacos)
+      .catch(console.error)
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    const newErrors = {
+      data: '',
+      horaInicio: '',
+      horaTermino: '',
+      cpfResponsavel: ''
+    }
+
     const cpfLimpo = formData.cpfResponsavel.replace(/\D/g, '')
     if (!cpfValido(cpfLimpo)) {
-      setCpfError('O CPF informado é inválido.')
+      newErrors.cpfResponsavel = 'O CPF informado é inválido.'
+    }
+
+    const todayZero = new Date()
+    todayZero.setHours(0, 0, 0, 0)
+    
+    const [year, month, day] = formData.data.split('-').map(Number)
+    const selectedDate = new Date(year, month - 1, day)
+    
+    if (selectedDate.getTime() < todayZero.getTime()) {
+      newErrors.data = 'Data da reserva não pode estar no passado'
+    }
+
+    if (formData.horaInicio && formData.horaTermino && formData.horaTermino < formData.horaInicio) {
+      newErrors.horaInicio = 'Hora de início não pode estar depois da hora de fim'
+    }
+
+    if (formData.horaInicio && isTimeInPast(selectedDate, formData.horaInicio)) {
+      newErrors.horaInicio = 'Horário não pode estar no passado'
+    }
+
+    if (formData.horaTermino && isTimeInPast(selectedDate, formData.horaTermino)) {
+      newErrors.horaTermino = 'Horário não pode estar no passado'
+    }
+
+    if (newErrors.data || newErrors.horaInicio || newErrors.horaTermino || newErrors.cpfResponsavel) {
+      setErrors(newErrors)
       return
     }
-    setCpfError('')
-    alert('Agendamento realizado com sucesso!')
+
+    setErrors({
+      data: '',
+      horaInicio: '',
+      horaTermino: '',
+      cpfResponsavel: ''
+    })
+
+    const [startHour, startMin] = formData.horaInicio.split(':').map(Number)
+    const [endHour, endMin] = formData.horaTermino.split(':').map(Number)
+
+    const dataInicio = new Date(year, month - 1, day, startHour, startMin)
+    const dataTermino = new Date(year, month - 1, day, endHour, endMin)
+
+    try {
+      const res = await ReservaService.reservarEspaco(
+        cpfLimpo,
+        Number(formData.espacoId),
+        dataInicio.toISOString(),
+        dataTermino.toISOString()
+      )
+      if (res.sucesso) {
+        toast.success(res.mensagem || 'Reserva realizada com sucesso!')
+        setFormData({
+          espacoId: '',
+          data: formatDate(today),
+          horaInicio: '',
+          horaTermino: '',
+          cpfResponsavel: ''
+        })
+      } else {
+        toast.error(res.mensagem || 'Erro ao realizar reserva.')
+      }
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   return (
@@ -43,11 +127,11 @@ export default function FutureBookingPage() {
             </div>
             <div>
               <h1 className="text-4xl font-medium text-[#1A5C8A] dark:text-[#E8F2FA] tracking-tight">
-                Novo Agendamento
+                Nova Reserva
               </h1>
-              <p className="text-[17px] text-[#5F5E5A] mt-1">
+              {/* <p className="text-[17px] text-[#5F5E5A] mt-1">
                 Utilize o painel abaixo para reservar dependências mediante CPF.
-              </p>
+              </p> */}
             </div>
           </div>
         </header>
@@ -60,8 +144,7 @@ export default function FutureBookingPage() {
               <span className="text-lg">Localização e Data</span>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label htmlFor="espaco" className="text-[15px] font-medium text-[#5F5E5A]">Espaço Requisitado</label>
+            <InputLabel id="espaco" label="Espaço">
               <select
                 id="espaco"
                 className="flex h-12 w-full rounded-lg border border-[#B4B2A9] bg-white px-4 py-2 text-[15px] focus:ring-2 focus:ring-[#1A5C8A] outline-none transition-all cursor-pointer"
@@ -70,22 +153,26 @@ export default function FutureBookingPage() {
                 required
               >
                 <option value="" disabled>Selecione a sala ou área...</option>
-                {ESPACOS.filter(e => e.status !== 'Em manutenção').map(espaco => (
+                {espacos.filter(e => e.status !== 'Em manutenção').map(espaco => (
                   <option key={espaco.id} value={espaco.id}>
                     {espaco.nome} (Capacidade: {espaco.capacidadeMaxima} pessoas)
                   </option>
                 ))}
               </select>
-            </div>
+            </InputLabel>
 
             <InputLabel
               id="data-reserva"
-              label="Data do Agendamento"
+              label="Data"
               type="date"
               min={formatDate(today)}
               max={formatDate(maxDate)}
               value={formData.data}
-              onChange={e => setFormData({ ...formData, data: e.target.value })}
+              onChange={e => {
+                setFormData({ ...formData, data: e.target.value })
+                setErrors(prev => ({ ...prev, data: '' }))
+              }}
+              error={errors.data}
               className="h-12 text-[15px]"
               required
             />
@@ -104,7 +191,11 @@ export default function FutureBookingPage() {
                   label="Início"
                   type="time"
                   value={formData.horaInicio}
-                  onChange={e => setFormData({ ...formData, horaInicio: e.target.value })}
+                  onChange={e => {
+                    setFormData({ ...formData, horaInicio: e.target.value })
+                    setErrors(prev => ({ ...prev, horaInicio: '' }))
+                  }}
+                  error={errors.horaInicio}
                   className="h-12 text-[15px]"
                   required
                 />
@@ -113,7 +204,11 @@ export default function FutureBookingPage() {
                   label="Término"
                   type="time"
                   value={formData.horaTermino}
-                  onChange={e => setFormData({ ...formData, horaTermino: e.target.value })}
+                  onChange={e => {
+                    setFormData({ ...formData, horaTermino: e.target.value })
+                    setErrors(prev => ({ ...prev, horaTermino: '' }))
+                  }}
+                  error={errors.horaTermino}
                   className="h-12 text-[15px]"
                   required
                 />
@@ -129,13 +224,13 @@ export default function FutureBookingPage() {
                   label="CPF (apenas números)"
                   type="text"
                   placeholder="Ex: 11122233344"
-                  maxLength={14}
+                  maxLength={11}
                   value={formData.cpfResponsavel}
                   onChange={e => {
                     setFormData({ ...formData, cpfResponsavel: e.target.value })
-                    if (cpfError) setCpfError('')
+                    setErrors(prev => ({ ...prev, cpfResponsavel: '' }))
                   }}
-                  error={cpfError}
+                  error={errors.cpfResponsavel}
                   className="h-12 text-[15px]"
                   required
                 />

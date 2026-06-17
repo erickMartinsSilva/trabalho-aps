@@ -1,12 +1,25 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { BookingCard } from '@/components/BookingCard'
-import { RESERVAS, ESPACOS, USUARIOS } from '@/data'
 import { IconInfoCircle, IconCalendarWeek } from '@tabler/icons-react'
+import { ReservaService } from '@/api/reservaService'
+import { EspacoService } from '@/api/espacoService'
+import type { ReservaInfo, EspacoInfo } from '@/models'
 
 export default function WeeklyBooksPage() {
   const [reservaExpandida, setReservaExpandida] = useState<number | null>(null)
+  const [reservas, setReservas] = useState<ReservaInfo[]>([])
+  const [espacos, setEspacos] = useState<EspacoInfo[]>([])
 
-  // Gera uma lista com os próximos 7 dias a partir de hoje
+  useEffect(() => {
+    Promise.all([
+      ReservaService.listarReservas(),
+      EspacoService.listarEspacos()
+    ]).then(([resReservas, resEspacos]) => {
+      setReservas(resReservas)
+      setEspacos(resEspacos)
+    }).catch(console.error)
+  }, [])
+
   const próximosDias = useMemo(() => {
     const dias = []
     for (let i = 0; i < 7; i++) {
@@ -17,24 +30,23 @@ export default function WeeklyBooksPage() {
     return dias
   }, [])
 
-  // Agrupa as reservas mapeando cada um dos 7 dias
   const cronogramaSemanal = useMemo(() => {
     return próximosDias.map((dataDia) => {
-      const reservasDoDia = RESERVAS.filter(reserva => {
+      const reservasDoDia = reservas.filter(reserva => {
         const d = new Date(reserva.dataHoraInicio)
         return (
           d.getDate() === dataDia.getDate() &&
           d.getMonth() === dataDia.getMonth() &&
           d.getFullYear() === dataDia.getFullYear()
         )
-      }).map((reserva, index) => {
-        const espaco = ESPACOS.find(e => e.id === reserva.espacoId)
-        const usuario = USUARIOS[index % USUARIOS.length]
+      }).map(reserva => {
+        const espaco = espacos.find(e => e.id === reserva.espacoId)
         
         return {
           ...reserva,
+          dataHoraInicio: new Date(reserva.dataHoraInicio),
+          dataHoraTermino: new Date(reserva.dataHoraTermino),
           espacoNome: espaco?.nome,
-          usuario,
         }
       })
 
@@ -44,7 +56,7 @@ export default function WeeklyBooksPage() {
         reservas: reservasDoDia
       }
     })
-  }, [próximosDias])
+  }, [próximosDias, reservas, espacos])
 
   const formatarHora = (data: Date) => {
     return new Date(data).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
@@ -60,10 +72,10 @@ export default function WeeklyBooksPage() {
             </div>
             <div>
               <h1 className="text-4xl font-bold text-[#1A5C8A] dark:text-[#E8F2FA] tracking-tight">
-                Agenda Semanal de Dependências
+                Agenda Semanal de Reservas
               </h1>
               <p className="text-[17px] text-muted-foreground mt-1">
-                Cronograma completo de alocações para os próximos 7 dias.
+                Clique em uma reserva para consultar seus detalhes.
               </p>
             </div>
           </div>
@@ -72,7 +84,6 @@ export default function WeeklyBooksPage() {
         <div className="space-y-10">
           {cronogramaSemanal.map((blocoDia, indexMod) => (
             <section key={indexMod} className="space-y-4">
-              {/* Cabeçalho do Dia da Semana */}
               <h3 className="text-xl font-semibold text-[#1A5C8A] dark:text-[#E8F2FA] capitalize border-l-4 border-[#1A5C8A] pl-3">
                 {blocoDia.titulo}
               </h3>
@@ -105,16 +116,16 @@ export default function WeeklyBooksPage() {
                           <div className="bg-white rounded-xl p-5 border border-[#1A5C8A]/20 shadow-md space-y-4 animate-in slide-in-from-top-2 fade-in duration-200">
                             <div className="flex items-center gap-2 border-b border-border pb-2 text-[#1A5C8A]">
                               <IconInfoCircle size={20} />
-                              <h4 className="font-semibold text-[15px]">Detalhes do Agendamento</h4>
+                              <h4 className="font-semibold text-[15px]">Detalhes da Reserva</h4>
                             </div>
                             
                             <div className="grid grid-cols-2 gap-4 text-[13px]">
                               <div className="col-span-2">
                                 <span className="text-muted-foreground block text-[11px] uppercase tracking-wider font-medium mb-1">
-                                  Responsável
+                                  Responsável (CPF)
                                 </span>
                                 <span className="font-semibold text-foreground text-[15px]">
-                                  {item.usuario.nome}
+                                  {item.cpfUsuario}
                                 </span>
                               </div>
                               <div>

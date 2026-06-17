@@ -37,8 +37,32 @@ export const ReservaStatus = {
 
 export type ReservaStatusValue = typeof ReservaStatus[keyof typeof ReservaStatus]
 
+export interface EspacoInfo {
+  id: number
+  nome: string
+  descricao?: string
+  capacidadeMaxima: number
+  status: EspacoStatusValue
+}
 
+export interface ReservaInfo {
+  id: number
+  espacoId: number
+  nomeEspaco: string
+  cpfUsuario: string
+  dataHoraInicio: string
+  dataHoraTermino: string
+  status: ReservaStatusValue
+}
 
+export interface UsuarioInfo {
+  cpf: string
+}
 
-
-
+export interface DisponibilidadeInfo {
+  espacoId: number
+  nomeEspaco: string
+  dataHoraInicio: string
+  dataHoraTermino: string
+  disponivel: boolean
+}
