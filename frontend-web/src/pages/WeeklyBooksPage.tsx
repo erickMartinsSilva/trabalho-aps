@@ -1,65 +1,65 @@
 import { useMemo, useState, useEffect } from 'react'
 import { BookingCard } from '@/components/BookingCard'
 import { IconInfoCircle, IconCalendarWeek } from '@tabler/icons-react'
-import { ReservaService } from '@/api/reservaService'
-import { EspacoService } from '@/api/espacoService'
-import type { ReservaInfo, EspacoInfo } from '@/models'
+import { BookingService } from '@/api/bookingService'
+import { SpaceService } from '@/api/spaceService'
+import type { BookingInfo, SpaceInfo } from '@/models'
 
 export default function WeeklyBooksPage() {
-  const [reservaExpandida, setReservaExpandida] = useState<number | null>(null)
-  const [reservas, setReservas] = useState<ReservaInfo[]>([])
-  const [espacos, setEspacos] = useState<EspacoInfo[]>([])
+  const [expandedBooking, setExpandedBooking] = useState<number | null>(null)
+  const [bookings, setBookings] = useState<BookingInfo[]>([])
+  const [spaces, setSpaces] = useState<SpaceInfo[]>([])
 
   useEffect(() => {
     Promise.all([
-      ReservaService.listarReservas(),
-      EspacoService.listarEspacos()
-    ]).then(([resReservas, resEspacos]) => {
-      setReservas(resReservas)
-      setEspacos(resEspacos)
+      BookingService.listBookings(),
+      SpaceService.listSpaces()
+    ]).then(([resBookings, resSpaces]) => {
+      setBookings(resBookings)
+      setSpaces(resSpaces)
     }).catch(console.error)
   }, [])
 
-  const próximosDias = useMemo(() => {
-    const dias = []
+  const nextDays = useMemo(() => {
+    const days = []
     for (let i = 0; i < 7; i++) {
-      const data = new Date()
-      data.setDate(data.getDate() + i)
-      dias.push(data)
+      const date = new Date()
+      date.setDate(date.getDate() + i)
+      days.push(date)
     }
-    return dias
+    return days
   }, [])
 
-  const cronogramaSemanal = useMemo(() => {
-    return próximosDias.map((dataDia) => {
-      const reservasDoDia = reservas.filter(reserva => {
-        const d = new Date(reserva.dataHoraInicio)
+  const weeklySchedule = useMemo(() => {
+    return nextDays.map((dayDate) => {
+      const bookingsForDay = bookings.filter(booking => {
+        const d = new Date(booking.dataHoraInicio)
         return (
-          d.getDate() === dataDia.getDate() &&
-          d.getMonth() === dataDia.getMonth() &&
-          d.getFullYear() === dataDia.getFullYear()
+          d.getDate() === dayDate.getDate() &&
+          d.getMonth() === dayDate.getMonth() &&
+          d.getFullYear() === dayDate.getFullYear()
         )
-      }).map(reserva => {
-        const espaco = espacos.find(e => e.id === reserva.espacoId)
+      }).map(booking => {
+        const space = spaces.find(s => s.id === booking.espacoId)
         
         return {
-          ...reserva,
-          dataHoraInicio: new Date(reserva.dataHoraInicio),
-          dataHoraTermino: new Date(reserva.dataHoraTermino),
-          espacoNome: espaco?.nome,
+          ...booking,
+          dataHoraInicio: new Date(booking.dataHoraInicio),
+          dataHoraTermino: new Date(booking.dataHoraTermino),
+          espacoNome: space?.nome,
         }
       })
 
       return {
-        data: dataDia,
-        titulo: dataDia.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' }),
-        reservas: reservasDoDia
+        date: dayDate,
+        title: dayDate.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' }),
+        bookings: bookingsForDay
       }
     })
-  }, [próximosDias, reservas, espacos])
+  }, [nextDays, bookings, spaces])
 
-  const formatarHora = (data: Date) => {
-    return new Date(data).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  const formatTime = (date: Date) => {
+    return new Date(date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
   }
 
   return (
@@ -82,20 +82,20 @@ export default function WeeklyBooksPage() {
         </header>
 
         <div className="space-y-10">
-          {cronogramaSemanal.map((blocoDia, indexMod) => (
-            <section key={indexMod} className="space-y-4">
+          {weeklySchedule.map((dayBlock, index) => (
+            <section key={index} className="space-y-4">
               <h3 className="text-xl font-semibold text-[#1A5C8A] dark:text-[#E8F2FA] capitalize border-l-4 border-[#1A5C8A] pl-3">
-                {blocoDia.titulo}
+                {dayBlock.title}
               </h3>
 
-              {blocoDia.reservas.length === 0 ? (
+              {dayBlock.bookings.length === 0 ? (
                 <p className="text-sm text-muted-foreground bg-card/40 p-4 rounded-xl border border-border/60">
                   Nenhuma reserva programada para este dia.
                 </p>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {blocoDia.reservas.map((item) => {
-                    const isExpanded = reservaExpandida === item.id
+                  {dayBlock.bookings.map((item) => {
+                    const isExpanded = expandedBooking === item.id
 
                     return (
                       <div key={item.id} className="flex flex-col space-y-2">
@@ -108,7 +108,7 @@ export default function WeeklyBooksPage() {
                             espacoNome={item.espacoNome}
                             status={item.status}
                             className="shadow-sm h-full hover:border-[#1A5C8A]/50 cursor-pointer bg-white"
-                            onClick={() => setReservaExpandida(isExpanded ? null : item.id)}
+                            onClick={() => setExpandedBooking(isExpanded ? null : item.id)}
                           />
                         </div>
 
@@ -133,7 +133,7 @@ export default function WeeklyBooksPage() {
                                   Início
                                 </span>
                                 <span className="font-medium text-foreground">
-                                  {formatarHora(item.dataHoraInicio)}
+                                  {formatTime(item.dataHoraInicio)}
                                 </span>
                               </div>
                               <div>
@@ -141,7 +141,7 @@ export default function WeeklyBooksPage() {
                                   Término
                                 </span>
                                 <span className="font-medium text-foreground">
-                                  {formatarHora(item.dataHoraTermino)}
+                                  {formatTime(item.dataHoraTermino)}
                                 </span>
                               </div>
                             </div>

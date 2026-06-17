@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import InputLabel from '@/components/InputLabel'
-import { cpfValido, isTimeInPast } from '@/utils'
+import { isValidCpf, isTimeInPast } from '@/utils'
 import { IconCalendarPlus, IconBuilding, IconClock, IconIdBadge2, IconCheck } from '@tabler/icons-react'
-import { EspacoService } from '@/api/espacoService'
-import { ReservaService } from '@/api/reservaService'
-import type { EspacoInfo } from '@/models'
+import { SpaceService } from '@/api/spaceService'
+import { BookingService } from '@/api/bookingService'
+import type { SpaceInfo } from '@/models'
 import { toast } from 'sonner'
 
 export default function FutureBookingPage() {
@@ -15,25 +15,25 @@ export default function FutureBookingPage() {
   const formatDate = (d: Date) => d.toISOString().split('T')[0]
 
   const [formData, setFormData] = useState({
-    espacoId: '',
-    data: formatDate(today),
-    horaInicio: '',
-    horaTermino: '',
-    cpfResponsavel: ''
+    spaceId: '',
+    date: formatDate(today),
+    startTime: '',
+    endTime: '',
+    responsibleCpf: ''
   })
   
   const [errors, setErrors] = useState({
-    data: '',
-    horaInicio: '',
-    horaTermino: '',
-    cpfResponsavel: ''
+    date: '',
+    startTime: '',
+    endTime: '',
+    responsibleCpf: ''
   })
 
-  const [espacos, setEspacos] = useState<EspacoInfo[]>([])
+  const [spaces, setSpaces] = useState<SpaceInfo[]>([])
 
   useEffect(() => {
-    EspacoService.listarEspacos()
-      .then(setEspacos)
+    SpaceService.listSpaces()
+      .then(setSpaces)
       .catch(console.error)
   }, [])
 
@@ -41,72 +41,72 @@ export default function FutureBookingPage() {
     e.preventDefault()
     
     const newErrors = {
-      data: '',
-      horaInicio: '',
-      horaTermino: '',
-      cpfResponsavel: ''
+      date: '',
+      startTime: '',
+      endTime: '',
+      responsibleCpf: ''
     }
 
-    const cpfLimpo = formData.cpfResponsavel.replace(/\D/g, '')
-    if (!cpfValido(cpfLimpo)) {
-      newErrors.cpfResponsavel = 'O CPF informado é inválido.'
+    const cleanedCpf = formData.responsibleCpf.replace(/\D/g, '')
+    if (!isValidCpf(cleanedCpf)) {
+      newErrors.responsibleCpf = 'O CPF informado é inválido.'
     }
 
-    const todayZero = new Date()
-    todayZero.setHours(0, 0, 0, 0)
+    const todayMidnight = new Date()
+    todayMidnight.setHours(0, 0, 0, 0)
     
-    const [year, month, day] = formData.data.split('-').map(Number)
+    const [year, month, day] = formData.date.split('-').map(Number)
     const selectedDate = new Date(year, month - 1, day)
     
-    if (selectedDate.getTime() < todayZero.getTime()) {
-      newErrors.data = 'Data da reserva não pode estar no passado'
+    if (selectedDate.getTime() < todayMidnight.getTime()) {
+      newErrors.date = 'Data da reserva não pode estar no passado'
     }
 
-    if (formData.horaInicio && formData.horaTermino && formData.horaTermino < formData.horaInicio) {
-      newErrors.horaInicio = 'Hora de início não pode estar depois da hora de fim'
+    if (formData.startTime && formData.endTime && formData.endTime < formData.startTime) {
+      newErrors.startTime = 'Hora de início não pode estar depois da hora de fim'
     }
 
-    if (formData.horaInicio && isTimeInPast(selectedDate, formData.horaInicio)) {
-      newErrors.horaInicio = 'Horário não pode estar no passado'
+    if (formData.startTime && isTimeInPast(selectedDate, formData.startTime)) {
+      newErrors.startTime = 'Horário não pode estar no passado'
     }
 
-    if (formData.horaTermino && isTimeInPast(selectedDate, formData.horaTermino)) {
-      newErrors.horaTermino = 'Horário não pode estar no passado'
+    if (formData.endTime && isTimeInPast(selectedDate, formData.endTime)) {
+      newErrors.endTime = 'Horário não pode estar no passado'
     }
 
-    if (newErrors.data || newErrors.horaInicio || newErrors.horaTermino || newErrors.cpfResponsavel) {
+    if (newErrors.date || newErrors.startTime || newErrors.endTime || newErrors.responsibleCpf) {
       setErrors(newErrors)
       return
     }
 
     setErrors({
-      data: '',
-      horaInicio: '',
-      horaTermino: '',
-      cpfResponsavel: ''
+      date: '',
+      startTime: '',
+      endTime: '',
+      responsibleCpf: ''
     })
 
-    const [startHour, startMin] = formData.horaInicio.split(':').map(Number)
-    const [endHour, endMin] = formData.horaTermino.split(':').map(Number)
+    const [startHour, startMin] = formData.startTime.split(':').map(Number)
+    const [endHour, endMin] = formData.endTime.split(':').map(Number)
 
-    const dataInicio = new Date(year, month - 1, day, startHour, startMin)
-    const dataTermino = new Date(year, month - 1, day, endHour, endMin)
+    const startDate = new Date(year, month - 1, day, startHour, startMin)
+    const endDate = new Date(year, month - 1, day, endHour, endMin)
 
     try {
-      const res = await ReservaService.reservarEspaco(
-        cpfLimpo,
-        Number(formData.espacoId),
-        dataInicio.toISOString(),
-        dataTermino.toISOString()
+      const res = await BookingService.bookSpace(
+        cleanedCpf,
+        Number(formData.spaceId),
+        startDate.toISOString(),
+        endDate.toISOString()
       )
       if (res.sucesso) {
         toast.success(res.mensagem || 'Reserva realizada com sucesso!')
         setFormData({
-          espacoId: '',
-          data: formatDate(today),
-          horaInicio: '',
-          horaTermino: '',
-          cpfResponsavel: ''
+          spaceId: '',
+          date: formatDate(today),
+          startTime: '',
+          endTime: '',
+          responsibleCpf: ''
         })
       } else {
         toast.error(res.mensagem || 'Erro ao realizar reserva.')
@@ -129,9 +129,6 @@ export default function FutureBookingPage() {
               <h1 className="text-4xl font-medium text-[#1A5C8A] dark:text-[#E8F2FA] tracking-tight">
                 Nova Reserva
               </h1>
-              {/* <p className="text-[17px] text-[#5F5E5A] mt-1">
-                Utilize o painel abaixo para reservar dependências mediante CPF.
-              </p> */}
             </div>
           </div>
         </header>
@@ -148,14 +145,14 @@ export default function FutureBookingPage() {
               <select
                 id="espaco"
                 className="flex h-12 w-full rounded-lg border border-[#B4B2A9] bg-white px-4 py-2 text-[15px] focus:ring-2 focus:ring-[#1A5C8A] outline-none transition-all cursor-pointer"
-                value={formData.espacoId}
-                onChange={e => setFormData({ ...formData, espacoId: e.target.value })}
+                value={formData.spaceId}
+                onChange={e => setFormData({ ...formData, spaceId: e.target.value })}
                 required
               >
                 <option value="" disabled>Selecione a sala ou área...</option>
-                {espacos.filter(e => e.status !== 'Em manutenção').map(espaco => (
-                  <option key={espaco.id} value={espaco.id}>
-                    {espaco.nome} (Capacidade: {espaco.capacidadeMaxima} pessoas)
+                {spaces.filter(s => s.status !== 'Em manutenção').map(space => (
+                  <option key={space.id} value={space.id}>
+                    {space.nome} (Capacidade: {space.capacidadeMaxima} pessoas)
                   </option>
                 ))}
               </select>
@@ -167,12 +164,12 @@ export default function FutureBookingPage() {
               type="date"
               min={formatDate(today)}
               max={formatDate(maxDate)}
-              value={formData.data}
+              value={formData.date}
               onChange={e => {
-                setFormData({ ...formData, data: e.target.value })
-                setErrors(prev => ({ ...prev, data: '' }))
+                setFormData({ ...formData, date: e.target.value })
+                setErrors(prev => ({ ...prev, date: '' }))
               }}
-              error={errors.data}
+              error={errors.date}
               className="h-12 text-[15px]"
               required
             />
@@ -190,12 +187,12 @@ export default function FutureBookingPage() {
                   id="hora-inicio"
                   label="Início"
                   type="time"
-                  value={formData.horaInicio}
+                  value={formData.startTime}
                   onChange={e => {
-                    setFormData({ ...formData, horaInicio: e.target.value })
-                    setErrors(prev => ({ ...prev, horaInicio: '' }))
+                    setFormData({ ...formData, startTime: e.target.value })
+                    setErrors(prev => ({ ...prev, startTime: '' }))
                   }}
-                  error={errors.horaInicio}
+                  error={errors.startTime}
                   className="h-12 text-[15px]"
                   required
                 />
@@ -203,12 +200,12 @@ export default function FutureBookingPage() {
                   id="hora-termino"
                   label="Término"
                   type="time"
-                  value={formData.horaTermino}
+                  value={formData.endTime}
                   onChange={e => {
-                    setFormData({ ...formData, horaTermino: e.target.value })
-                    setErrors(prev => ({ ...prev, horaTermino: '' }))
+                    setFormData({ ...formData, endTime: e.target.value })
+                    setErrors(prev => ({ ...prev, endTime: '' }))
                   }}
-                  error={errors.horaTermino}
+                  error={errors.endTime}
                   className="h-12 text-[15px]"
                   required
                 />
@@ -225,12 +222,12 @@ export default function FutureBookingPage() {
                   type="text"
                   placeholder="Ex: 11122233344"
                   maxLength={11}
-                  value={formData.cpfResponsavel}
+                  value={formData.responsibleCpf}
                   onChange={e => {
-                    setFormData({ ...formData, cpfResponsavel: e.target.value })
-                    setErrors(prev => ({ ...prev, cpfResponsavel: '' }))
+                    setFormData({ ...formData, responsibleCpf: e.target.value })
+                    setErrors(prev => ({ ...prev, responsibleCpf: '' }))
                   }}
-                  error={errors.cpfResponsavel}
+                  error={errors.responsibleCpf}
                   className="h-12 text-[15px]"
                   required
                 />

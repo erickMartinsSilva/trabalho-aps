@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { StatusBadge } from '@/components/StatusBadge'
-import type { EspacoStatusValue } from '@/models'
+import type { SpaceStatusValue } from '@/models'
 import { cn } from '@/lib/utils'
 import { useNavigate } from 'react-router'
 
@@ -15,7 +15,7 @@ export interface SpaceCardProps {
   id: number
   nome: string
   capacidadeMaxima: number
-  status: EspacoStatusValue
+  status: SpaceStatusValue
   onClick?: () => void
   className?: string
 }

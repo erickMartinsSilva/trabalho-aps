@@ -5,9 +5,9 @@ import {
   IconInfoCircle,
 } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
-import type { EspacoStatusValue, ReservaStatusValue } from '@/models'
+import type { SpaceStatusValue, BookingStatusValue } from '@/models'
 
-export type BadgeStatus = EspacoStatusValue | ReservaStatusValue
+export type BadgeStatus = SpaceStatusValue | BookingStatusValue
 
 interface StatusBadgeProps {
   status: BadgeStatus

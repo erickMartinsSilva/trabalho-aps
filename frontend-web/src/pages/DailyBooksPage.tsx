@@ -1,48 +1,48 @@
 import { useMemo, useState, useEffect } from 'react'
 import { BookingCard } from '@/components/BookingCard'
 import { IconInfoCircle } from '@tabler/icons-react'
-import { ReservaService } from '@/api/reservaService'
-import { EspacoService } from '@/api/espacoService'
-import type { ReservaInfo, EspacoInfo } from '@/models'
+import { BookingService } from '@/api/bookingService'
+import { SpaceService } from '@/api/spaceService'
+import type { BookingInfo, SpaceInfo } from '@/models'
 
 export default function DailyBooksPage() {
-  const [reservaExpandida, setReservaExpandida] = useState<number | null>(null)
-  const [reservas, setReservas] = useState<ReservaInfo[]>([])
-  const [espacos, setEspacos] = useState<EspacoInfo[]>([])
+  const [expandedBooking, setExpandedBooking] = useState<number | null>(null)
+  const [bookings, setBookings] = useState<BookingInfo[]>([])
+  const [spaces, setSpaces] = useState<SpaceInfo[]>([])
 
   useEffect(() => {
     Promise.all([
-      ReservaService.listarReservas(),
-      EspacoService.listarEspacos()
-    ]).then(([resReservas, resEspacos]) => {
-      setReservas(resReservas)
-      setEspacos(resEspacos)
+      BookingService.listBookings(),
+      SpaceService.listSpaces()
+    ]).then(([resBookings, resSpaces]) => {
+      setBookings(resBookings)
+      setSpaces(resSpaces)
     }).catch(console.error)
   }, [])
 
-  const listagemReservasDoDia = useMemo(() => {
-    const hoje = new Date()
+  const dailyBookingsList = useMemo(() => {
+    const today = new Date()
     
-    return reservas.filter(reserva => {
-      const dataReserva = new Date(reserva.dataHoraInicio)
+    return bookings.filter(booking => {
+      const bookingDate = new Date(booking.dataHoraInicio)
       return (
-        dataReserva.getDate() === hoje.getDate() &&
-        dataReserva.getMonth() === hoje.getMonth() &&
-        dataReserva.getFullYear() === hoje.getFullYear()
+        bookingDate.getDate() === today.getDate() &&
+        bookingDate.getMonth() === today.getMonth() &&
+        bookingDate.getFullYear() === today.getFullYear()
       )
-    }).map(reserva => {
-      const espaco = espacos.find(e => e.id === reserva.espacoId)
+    }).map(booking => {
+      const space = spaces.find(s => s.id === booking.espacoId)
       return {
-        ...reserva,
-        dataHoraInicio: new Date(reserva.dataHoraInicio),
-        dataHoraTermino: new Date(reserva.dataHoraTermino),
-        espacoNome: espaco?.nome,
+        ...booking,
+        dataHoraInicio: new Date(booking.dataHoraInicio),
+        dataHoraTermino: new Date(booking.dataHoraTermino),
+        espacoNome: space?.nome,
       }
     })
-  }, [reservas, espacos])
+  }, [bookings, spaces])
 
-  const formatarHora = (data: Date) => {
-    return new Date(data).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  const formatTime = (date: Date) => {
+    return new Date(date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
   }
 
   return (
@@ -58,13 +58,13 @@ export default function DailyBooksPage() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {listagemReservasDoDia.length === 0 ? (
+          {dailyBookingsList.length === 0 ? (
             <p className="text-[15px] text-[#5F5E5A] col-span-full bg-white p-8 rounded-xl border border-[#ECEAE4] shadow-sm">
               Não há reservas feitas para a data de hoje.
             </p>
           ) : (
-            listagemReservasDoDia.map((item) => {
-              const isExpanded = reservaExpandida === item.id
+            dailyBookingsList.map((item) => {
+              const isExpanded = expandedBooking === item.id
 
               return (
                 <div key={item.id} className="flex flex-col space-y-2">
@@ -79,7 +79,7 @@ export default function DailyBooksPage() {
                       espacoNome={item.espacoNome}
                       status={item.status}
                       className="shadow-sm h-full hover:border-[#1A5C8A]/50 cursor-pointer"
-                      onClick={() => setReservaExpandida(isExpanded ? null : item.id)}
+                      onClick={() => setExpandedBooking(isExpanded ? null : item.id)}
                     />
                   </div>
                   
@@ -105,7 +105,7 @@ export default function DailyBooksPage() {
                             Início
                           </span>
                           <span className="font-medium text-[#2C2C2A]">
-                            {formatarHora(item.dataHoraInicio)}
+                            {formatTime(item.dataHoraInicio)}
                           </span>
                         </div>
 
@@ -114,7 +114,7 @@ export default function DailyBooksPage() {
                             Término
                           </span>
                           <span className="font-medium text-[#2C2C2A]">
-                            {formatarHora(item.dataHoraTermino)}
+                            {formatTime(item.dataHoraTermino)}
                           </span>
                         </div>
                       </div>

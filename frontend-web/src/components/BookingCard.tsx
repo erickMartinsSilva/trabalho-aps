@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { StatusBadge } from '@/components/StatusBadge'
-import type { ReservaStatusValue } from '@/models'
+import type { BookingStatusValue } from '@/models'
 import { cn } from '@/lib/utils'
 
 export interface BookingCardProps {
@@ -16,7 +16,7 @@ export interface BookingCardProps {
   dataHoraTermino: Date
   espacoNome?: string
   espacoId: number
-  status: ReservaStatusValue
+  status: BookingStatusValue
   onClick?: () => void
   className?: string
 }

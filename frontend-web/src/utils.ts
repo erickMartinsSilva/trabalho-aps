@@ -1,34 +1,34 @@
-export function cpfValido(cpf: string): boolean {
-  const regexSomenteNumeros = /^\d+$/
-  const cpfFormatoValido = cpf.length === 11 && regexSomenteNumeros.test(cpf)
-  if(!cpfFormatoValido) return false
+export function isValidCpf(cpf: string): boolean {
+  const onlyNumbersRegex = /^\d+$/
+  const isCpfLengthAndFormatValid = cpf.length === 11 && onlyNumbersRegex.test(cpf)
+  if(!isCpfLengthAndFormatValid) return false
 
-  let somaPrimeiroDigito = 0
-  let somaSegundoDigito = 0
-  const digitos = cpf.slice(0, 9)
+  let sumFirstDigit = 0
+  let sumSecondDigit = 0
+  const digits = cpf.slice(0, 9)
 
-  for(let i: number = 0; i < digitos.length; i++) {
-    somaPrimeiroDigito += Number(digitos.at(i)) * (i+1)
-    somaSegundoDigito += Number(digitos.at(i)) * i
+  for(let i: number = 0; i < digits.length; i++) {
+    sumFirstDigit += Number(digits.at(i)) * (i+1)
+    sumSecondDigit += Number(digits.at(i)) * i
   }
 
-  const restoPrimeiroDigito = somaPrimeiroDigito % 11
-  const primeiroDigitoVerificador = restoPrimeiroDigito !== 10 ? restoPrimeiroDigito : 0
+  const remainderFirstDigit = sumFirstDigit % 11
+  const firstVerifierDigit = remainderFirstDigit !== 10 ? remainderFirstDigit : 0
   
-  somaSegundoDigito += primeiroDigitoVerificador * 9
-  const restoSegundoDigito = somaSegundoDigito % 11
-  const segundoDigitoVerificador = restoSegundoDigito !== 10 ? restoSegundoDigito : 0
+  sumSecondDigit += firstVerifierDigit * 9
+  const remainderSecondDigit = sumSecondDigit % 11
+  const secondVerifierDigit = remainderSecondDigit !== 10 ? remainderSecondDigit : 0
 
-  const cpfValido = Number(cpf.at(9)) === primeiroDigitoVerificador &&
-    Number(cpf.at(10)) === segundoDigitoVerificador
+  const isCpfValid = Number(cpf.at(9)) === firstVerifierDigit &&
+    Number(cpf.at(10)) === secondVerifierDigit
 
-  return cpfValido
+  return isCpfValid
 }
 
-export function isTimeInPast(data: Date, time: string) {
+export function isTimeInPast(date: Date, time: string) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  if (data.getTime() > today.getTime()) return false
+  if (date.getTime() > today.getTime()) return false
 
   const timeSplit = time.split(":")
   const now = new Date()

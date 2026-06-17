@@ -1,6 +1,32 @@
 import { XMLParser, XMLBuilder } from 'fast-xml-parser'
 import { toast } from 'sonner'
 
+function getFriendlyErrorMessage(rawMessage: string): string | null {
+  const mappings = [
+    {
+      patterns: ['fk_usuario', 'violates foreign key constraint "fk_usuario"'],
+      message: 'Usuário não encontrado'
+    },
+    {
+      patterns: ['referenced from table "reserva"', 'fk_espaco" on table "reserva"'],
+      message: 'Não é possível remover este espaço pois existem reservas ativas para ele.'
+    },
+    {
+      patterns: ['is not present in table "espaco"', 'fk_espaco'],
+      message: 'Espaço não encontrado.'
+    },
+    {
+      patterns: ['usuario_pkey', 'duplicate key value violates unique constraint'],
+      message: 'Usuário (CPF) já cadastrado.'
+    }
+  ]
+
+  const matched = mappings.find(m => 
+    m.patterns.some(p => rawMessage.includes(p))
+  )
+  return matched ? matched.message : null
+}
+
 export interface SoapClientOptions {
   endpointPath: string
   namespace: string
@@ -44,11 +70,14 @@ export async function callSoapService<TResponse>(
     if (!response.ok) {
       const errorText = await response.text()
       let errorMsg = `Requisição SOAP falhou com status ${response.status}: ${errorText}`
-      if (errorText.includes('fk_usuario') || errorText.includes('violates foreign key constraint "fk_usuario"')) {
-        errorMsg = 'Usuário não encontrado'
+      const friendly = getFriendlyErrorMessage(errorText)
+      if (friendly) {
+        errorMsg = friendly
       }
       toast.error(errorMsg)
-      throw new Error(errorMsg)
+      const error = new Error(errorMsg) as any
+      error.alreadyToasted = true
+      throw error
     }
 
     const xmlResponse = await response.text()
@@ -64,27 +93,29 @@ export async function callSoapService<TResponse>(
     if (!body) {
       const errorMsg = 'Resposta SOAP inválida: missing Envelope/Body'
       toast.error(errorMsg)
-      throw new Error(errorMsg)
+      const error = new Error(errorMsg) as any
+      error.alreadyToasted = true
+      throw error
     }
 
     if (body.Fault) {
       const faultString = String(body.Fault.faultstring || '')
       let errorMsg = `Erro na API: ${faultString || 'Erro desconhecido'}`
-      if (faultString.includes('fk_usuario') || faultString.includes('violates foreign key constraint "fk_usuario"')) {
-        errorMsg = 'Usuário não encontrado'
+      const friendly = getFriendlyErrorMessage(faultString)
+      if (friendly) {
+        errorMsg = friendly
       }
       toast.error(errorMsg)
-      throw new Error(errorMsg)
+      const error = new Error(errorMsg) as any
+      error.alreadyToasted = true
+      throw error
     }
 
     const responseWrapper = body[`${options.operation}Response`]
     return responseWrapper as TResponse
   } catch (err) {
-    const error = err as Error
-    if (!error.message?.startsWith('Requisição SOAP falhou') && 
-        !error.message?.startsWith('Resposta SOAP inválida') && 
-        !error.message?.startsWith('Erro na API') &&
-        error.message !== 'Usuário não encontrado') {
+    const error = err as any
+    if (!error.alreadyToasted) {
       toast.error(`Erro de conexão com o servidor: ${error.message}`)
     }
     throw err
