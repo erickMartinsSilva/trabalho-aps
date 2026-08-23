@@ -1,5 +1,7 @@
 # trabalho-aps
 
+[🇧🇷 Português](README.md) · [🇺🇸 English](README.en.md)
+
 Trabalho final da disciplina de Arquitetura e Padrões de Software - CEFET/RJ
 
 ## Introdução
