@@ -1,6 +1,6 @@
 trabalho-aps
 
-"🇧🇷 Português" (README.md) · "🇺🇸 English" (README.en.md)
+[🇧🇷 Português](README.md) · [🇺🇸 English](README.en.md)
 
 Final project for the Software Architecture and Patterns course at CEFET/RJ.
 
