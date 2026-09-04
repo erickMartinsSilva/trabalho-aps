@@ -1,49 +1,107 @@
-# trabalho-aps
+trabalho-aps
 
-[🇧🇷 Português](README.md) · [🇺🇸 English](README.en.md)
+"🇧🇷 Português" (README.md) · "🇺🇸 English" (README.en.md)
 
-Final project for the Software Architecture and Patterns course - CEFET/RJ
+Final project for the Software Architecture and Patterns course at CEFET/RJ.
 
-## Introduction
+Introduction
 
-This project consists of a Service-Oriented Architecture system that simulates an application for renting spaces in a residential apartment complex.
+This project consists of a Service-Oriented Architecture system that simulates an application for renting spaces in a residential condominium.
 
-## Requirements
+Requirements
 
-- Node >= v20;
-- NPM >= v10;
-- Java >= 25;
-- PostgreSQL >= 17.
+- Node.js 22.12 or newer;
+- npm 10 or newer;
+- JDK 25;
+- PostgreSQL 17.
 
-## How to run
+These are the versions targeted by the project. Newer major versions may work, but they have not necessarily been tested.
 
-1. Create a new database named "aps":
-```bash
-psql=> CREATE DATABASE aps;
-```
+How to run
 
-2. Update the PostgreSQL username and password in `api/src/main/resources/application.properties` so the API can connect to the database;
+1. Clone the repository
 
-3. Run the Spring project:
-```bash
+git clone https://github.com/erickMartinsSilva/trabalho-aps.git
+cd trabalho-aps
+
+The following steps assume that you are in the repository’s root directory.
+
+2. Prepare the database
+
+Make sure PostgreSQL is running. Then, create a database named "aps":
+
+psql -U [USERNAME] -c "CREATE DATABASE aps;"
+
+If the "psql" command is not available in your "PATH", use the executable’s full path or create the "aps" database through pgAdmin.
+
+3. Configure API access to PostgreSQL
+
+Open "api/src/main/resources/application.properties" and replace the values of the following properties with your PostgreSQL credentials:
+
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+
+The default connection URL assumes that PostgreSQL is available locally on port "5432" and that the database is named "aps":
+
+spring.datasource.url=jdbc:postgresql://localhost:5432/aps
+
+Do not commit personal credentials to the repository.
+
+4. Start the API
+
+Linux and macOS
+
 cd api
-./mvnw spring-boot:run # available at http://localhost:8080
-```
+./mvnw spring-boot:run
 
-4. Install the dependencies for each frontend:
-```bash
-cd frontend-mobile (or frontend-web)
-npm install
-```
+Windows PowerShell
 
-5. Create the environment variables file based on `.env.example`:
-```bash
+cd api
+.\mvnw.cmd spring-boot:run
+
+The API will be available at "http://localhost:8080". Keep this process running while using either frontend.
+
+5. Start a frontend
+
+Web frontend
+
+Linux and macOS:
+
+cd frontend-web
+npm ci
 cp .env.example .env
-```
+npm run dev
 
-6. Run the Vite project:
-```bash
-npm run dev # available at http://localhost:5173
-```
+Windows PowerShell:
 
-> NOTE: To use the client application with all its features, the Spring API must be started first.
+cd frontend-web
+npm ci
+Copy-Item .env.example .env
+npm run dev
+
+Mobile frontend
+
+Linux and macOS:
+
+cd frontend-mobile
+npm ci
+cp .env.example .env
+npm run dev
+
+Windows PowerShell:
+
+cd frontend-mobile
+npm ci
+Copy-Item .env.example .env
+npm run dev
+
+Vite will normally make the frontend available at "http://localhost:5173". If both frontends are started simultaneously, it may select a different port for the second process; refer to the address displayed in the terminal.
+
+Verification
+
+After completing the setup:
+
+1. Confirm in the API terminal that Spring started without errors;
+2. Open "http://localhost:8080/ws/usuario.wsdl" and confirm that the WSDL is displayed;
+3. Open the address displayed by Vite, normally "http://localhost:5173";
+4. Confirm that the frontend can communicate with the API.
