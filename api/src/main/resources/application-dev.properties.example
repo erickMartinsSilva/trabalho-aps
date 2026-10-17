@@ -1,0 +1,8 @@
+# informações do banco de dados
+DB_URL=
+DB_USERNAME=
+DB_PASSWORD=
+
+# credenciais do admin criado pelo runner
+BOOTSTRAP_ADMIN_CPF=
+BOOTSTRAP_ADMIN_PASSWORD=
