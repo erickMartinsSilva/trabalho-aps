@@ -10,7 +10,7 @@ public class UsuarioModel {
     @Column(nullable = false, length = 11)
     private String cpf;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 60)
     private String senha;
 
     public String getCpf() { 

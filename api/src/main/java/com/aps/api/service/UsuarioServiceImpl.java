@@ -1,52 +1,65 @@
 package com.aps.api.service;
 
 import com.aps.api.config.ConexaoBanco;
+
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
+    private final JdbcTemplate jdbc = ConexaoBanco.getInstance().getJdbc();
+    private final PasswordEncoder passwordEncoder;
+
+    public UsuarioServiceImpl(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     public boolean login(String cpf, String senha) {
-        JdbcTemplate jdbc = ConexaoBanco.getInstance().getJdbc();
-        Integer count = jdbc.queryForObject(
-            "SELECT COUNT(*) FROM usuario WHERE cpf = ? AND senha = ?",
-            Integer.class, cpf, senha
-        );
-        return count != null && count > 0;
+        try {
+            String senhaHashDb = jdbc.queryForObject(
+                "SELECT senha FROM usuario WHERE cpf = ?",
+                String.class, cpf
+            );
+            Boolean passwordsMatch = passwordEncoder.matches(senha, senhaHashDb);
+            return passwordsMatch;
+        } catch(DataAccessException e) {
+            return false;
+        }
     }
 
     @Override
     public boolean cadastrarUsuario(String cpf, String senha) {
-        JdbcTemplate jdbc = ConexaoBanco.getInstance().getJdbc();
         Integer count = jdbc.queryForObject(
             "SELECT COUNT(*) FROM usuario WHERE cpf = ?",
             Integer.class, cpf
         );
         if (count != null && count > 0) return false;
-        jdbc.update("INSERT INTO usuario (cpf, senha) VALUES (?, ?)", cpf, senha);
+
+        jdbc.update("INSERT INTO usuario (cpf, senha) VALUES (?, ?)", cpf, passwordEncoder.encode(senha));
         return true;
     }
 
     @Override
     public boolean atualizarSenha(String cpf, String novaSenha, String senhaAtual) {
-        JdbcTemplate jdbc = ConexaoBanco.getInstance().getJdbc();
-        Integer count = jdbc.queryForObject(
-            "SELECT COUNT(*) FROM usuario WHERE cpf = ? AND senha = ?",
-            Integer.class, cpf, senhaAtual
+        String senhaDb = jdbc.queryForObject(
+            "SELECT senha FROM usuario WHERE cpf = ?",
+            String.class, cpf
         );
-        if (count == null || count == 0) return false;
-        int rows = jdbc.update("UPDATE usuario SET senha = ? WHERE cpf = ?", novaSenha, cpf);
+        if (!passwordEncoder.matches(senhaAtual, senhaDb)) return false;
+        int rows = jdbc.update(
+            "UPDATE usuario SET senha = ? WHERE cpf = ?",
+            passwordEncoder.encode(novaSenha), cpf
+        );
         return rows > 0;
     }
 
     @Override
     public boolean atualizarUsuario(String cpfAntigo, String cpfNovo, String novaSenha) {
-        JdbcTemplate jdbc = ConexaoBanco.getInstance().getJdbc();
-        
         // Check if user exists
         Integer count = jdbc.queryForObject(
             "SELECT COUNT(*) FROM usuario WHERE cpf = ?",
@@ -67,7 +80,7 @@ public class UsuarioServiceImpl implements UsuarioService {
             if (finalSenha != null) {
                 jdbc.update(
                     "INSERT INTO usuario (cpf, senha, is_admin) SELECT ?, ?, is_admin FROM usuario WHERE cpf = ?",
-                    cpfNovo, finalSenha, cpfAntigo
+                    cpfNovo, passwordEncoder.encode(finalSenha), cpfAntigo
                 );
             } else {
                 jdbc.update(
@@ -84,7 +97,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         } else {
             // Update only password
             if (novaSenha != null && !novaSenha.trim().isEmpty()) {
-                jdbc.update("UPDATE usuario SET senha = ? WHERE cpf = ?", novaSenha, cpfAntigo);
+                jdbc.update("UPDATE usuario SET senha = ? WHERE cpf = ?", passwordEncoder.encode(novaSenha), cpfAntigo);
             }
         }
         return true;
@@ -92,27 +105,23 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public boolean deletarUsuario(String cpf) {
-        JdbcTemplate jdbc = ConexaoBanco.getInstance().getJdbc();
         int rows = jdbc.update("DELETE FROM usuario WHERE cpf = ?", cpf);
         return rows > 0;
     }
 
     @Override
     public String buscarUsuario(String cpf) {
-        JdbcTemplate jdbc = ConexaoBanco.getInstance().getJdbc();
         List<String> result = jdbc.queryForList("SELECT cpf FROM usuario WHERE cpf = ?", String.class, cpf);
         return result.isEmpty() ? null : result.get(0);
     }
 
     @Override
     public List<String> listarUsuarios() {
-        JdbcTemplate jdbc = ConexaoBanco.getInstance().getJdbc();
         return jdbc.queryForList("SELECT cpf FROM usuario WHERE cpf <> '92942630884'", String.class);
     }
 
     @Override
     public boolean isAdmin(String cpf) {
-        JdbcTemplate jdbc = ConexaoBanco.getInstance().getJdbc();
         List<Boolean> result = jdbc.queryForList(
             "SELECT is_admin FROM usuario WHERE cpf = ?", Boolean.class, cpf
         );
