@@ -121,10 +121,34 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
+    public boolean cadastrarAdmin(String cpf, String senha) {
+        Integer count = jdbc.queryForObject(
+            "SELECT COUNT(*) FROM usuario WHERE cpf = ?",
+            Integer.class, cpf
+        );
+        if (count != null && count > 0) return false;
+
+        jdbc.update(
+            "INSERT INTO usuario (cpf, senha, is_admin) VALUES (?, ?, ?)",
+            cpf, passwordEncoder.encode(senha), true
+        );
+        return true;
+    }
+
+    @Override
     public boolean isAdmin(String cpf) {
         List<Boolean> result = jdbc.queryForList(
             "SELECT is_admin FROM usuario WHERE cpf = ?", Boolean.class, cpf
         );
         return !result.isEmpty() && Boolean.TRUE.equals(result.get(0));
+    }
+
+    @Override 
+    public boolean hasAdmin() {
+        Integer count = jdbc.queryForObject(
+            "SELECT COUNT(*) FROM usuario WHERE is_admin = TRUE",
+            Integer.class
+        );
+        return count != null && count > 0;
     }
 }

@@ -10,5 +10,7 @@ public interface UsuarioService {
     boolean deletarUsuario(String cpf);
     String buscarUsuario(String cpf);
     List<String> listarUsuarios();
+    boolean cadastrarAdmin(String cpf, String senha);
+    boolean hasAdmin();
     boolean isAdmin(String cpf);
 }
